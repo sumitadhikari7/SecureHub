@@ -1,9 +1,9 @@
-CREATE TABLE IF NOT EXISTS producers (
-    producer_id SERIAL PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    type VARCHAR(50),
-    district VARCHAR(100),
-    cooperative VARCHAR(150),
-    citizenship_no VARCHAR(50) UNIQUE,
-    registered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone_number VARCHAR(20),
+    status VARCHAR(50) DEFAULT 'active',
+    suspended_until TIMESTAMP WITH TIME ZONE NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
