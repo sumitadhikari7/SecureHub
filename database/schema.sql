@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS bid (
     CONSTRAINT fk_bid_bidder FOREIGN KEY (bidder_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
 
-CREATE TABLE IF NOT EXISTS fraud_alerts (
+CREATE TABLE IF NOT EXISTS fraud_alert (
     alert_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,          -- Flagged suspect user
     auction_id INT NOT NULL,       -- Contextual auction target
@@ -55,4 +55,18 @@ CREATE TABLE IF NOT EXISTS fraud_alerts (
     CONSTRAINT fk_alert_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_alert_auction FOREIGN KEY (auction_id) REFERENCES auctions(auction_id) ON DELETE CASCADE,
     CONSTRAINT fk_alert_admin FOREIGN KEY (reviewed_by) REFERENCES admins(admin_id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS admin_action (
+    action_id SERIAL PRIMARY KEY,
+    admin_id INT NOT NULL,
+    user_id INT NOT NULL,
+    alert_id INT NULL, 
+    action_type VARCHAR(100) NOT NULL, --  'Suspension', 'Auction Cancellation'
+    reason TEXT NOT NULL,
+    duration_days INT NULL,
+    action_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_action_admin FOREIGN KEY (admin_id) REFERENCES admins(admin_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_action_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_action_alert FOREIGN KEY (alert_id) REFERENCES fraud_alerts(alert_id) ON DELETE SET NULL
 );
