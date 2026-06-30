@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS admin (
+CREATE TABLE IF NOT EXISTS admins (
     admin_id SERIAL PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS admin (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS auction (
+CREATE TABLE IF NOT EXISTS auctions (
     auction_id SERIAL PRIMARY KEY,
     seller_id INT NOT NULL,
     winner_id INT NULL, 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS auction (
     CONSTRAINT fk_auction_winner FOREIGN KEY (winner_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS bid (
+CREATE TABLE IF NOT EXISTS bids (
     bid_id SERIAL PRIMARY KEY,
     auction_id INT NOT NULL,
     bidder_id INT NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS bid (
     CONSTRAINT fk_bid_bidder FOREIGN KEY (bidder_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
 
-CREATE TABLE IF NOT EXISTS fraud_alert (
+CREATE TABLE IF NOT EXISTS fraud_alerts (
     alert_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,          -- Flagged suspect user
     auction_id INT NOT NULL,       -- Contextual auction target
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS fraud_alert (
     CONSTRAINT fk_alert_admin FOREIGN KEY (reviewed_by) REFERENCES admins(admin_id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS admin_action (
+CREATE TABLE IF NOT EXISTS admin_actions (
     action_id SERIAL PRIMARY KEY,
     admin_id INT NOT NULL,
     user_id INT NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS admin_action (
     CONSTRAINT fk_action_alert FOREIGN KEY (alert_id) REFERENCES fraud_alerts(alert_id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_email ON user(email);
-CREATE INDEX IF NOT EXISTS idx_auctions_seller ON auction(seller_id);
-CREATE INDEX IF NOT EXISTS idx_bids_auction_amount ON bid(auction_id, bid_amount DESC);
-CREATE INDEX IF NOT EXISTS idx_fraud_alerts_status ON fraud_alert(alert_status);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_auctions_seller ON auctions(seller_id);
+CREATE INDEX IF NOT EXISTS idx_bids_auction_amount ON bids(auction_id, bid_amount DESC);
+CREATE INDEX IF NOT EXISTS idx_fraud_alerts_status ON fraud_alerts(alert_status);
