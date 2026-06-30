@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS auction (
     status VARCHAR(50) DEFAULT 'upcoming', -- upcoming, active, closed
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_auction_seller FOREIGN KEY (seller_id) REFERENCES users(user_id) ON DELETE RESTRICT,
+    -- ON DELETE RESTRICT means if a seller tries to completely delete their account while they have an active auction listing, PostgreSQL blocks the deletion to protect the platform.
     CONSTRAINT fk_auction_winner FOREIGN KEY (winner_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS bid (
     bid_amount NUMERIC(12, 2) NOT NULL CHECK (bid_amount > 0),
     bid_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_bid_auction FOREIGN KEY (auction_id) REFERENCES auctions(auction_id) ON DELETE CASCADE,
+    -- ON DELETE CASCADE: If an admin completely deletes a product auction from the system, this rule automatically deletes every single bid associated with that auction instantly, avoiding broken records in your database.
     CONSTRAINT fk_bid_bidder FOREIGN KEY (bidder_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
 
@@ -66,7 +68,12 @@ CREATE TABLE IF NOT EXISTS admin_action (
     reason TEXT NOT NULL,
     duration_days INT NULL,
     action_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_action_admin FOREIGN KEY (admin_id) REFERENCES admins(admin_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_action_admin FOREIGN KEY (admin_id) REFERENCES admins(admin_id) ON DELETE RESTRICT, 
     CONSTRAINT fk_action_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_action_alert FOREIGN KEY (alert_id) REFERENCES fraud_alerts(alert_id) ON DELETE SET NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON user(email);
+CREATE INDEX IF NOT EXISTS idx_auctions_seller ON auction(seller_id);
+CREATE INDEX IF NOT EXISTS idx_bids_auction_amount ON bid(auction_id, bid_amount DESC);
+CREATE INDEX IF NOT EXISTS idx_fraud_alerts_status ON fraud_alert(alert_status);
