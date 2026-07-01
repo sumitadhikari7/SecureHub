@@ -1,92 +1,195 @@
+/* =========================
+   MAIN PAGE
+========================= */
+
 .dashboard {
-  padding: 30px;
+    min-height: 100vh;
+    background-color: #eceff1;
+    padding: 25px 40px;
+    font-family: "Segoe UI", sans-serif;
 }
 
+/* =========================
+   HERO SECTION
+========================= */
+
 .hero {
-  background: linear-gradient(135deg, #1f2937, #374151);
-  color: white;
+    background: #1e293b;
+    color: white;
+    padding: 50px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
 
-  text-align: center;
-  padding: 60px 20px;
-
-  border-radius: 15px;
+.hero::after {
+    content: "🔨";
+    position: absolute;
+    right: 40px;
+    top: 20px;
+    font-size: 90px;
+    opacity: 0.08;
 }
 
 .hero h1 {
-  margin-bottom: 10px;
+    font-size: 38px;
+    margin-bottom: 10px;
 }
 
 .hero p {
-  margin-bottom: 20px;
+    color: #cbd5e1;
+    font-size: 16px;
+    margin-bottom: 25px;
 }
 
 .hero button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  background-color: #fbbf24;
-  cursor: pointer;
-  font-weight: bold;
+    background-color: #d97706;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
 }
 
+.hero button:hover {
+    background-color: #b45309;
+}
+
+/* =========================
+   STATS
+========================= */
+
 .stats {
-  display: flex;
-  gap: 20px;
-  margin-top: 30px;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .card {
-  flex: 1;
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  text-align: center;
+    flex: 1;
+    background: white;
+    border-left: 5px solid #d97706;
+    padding: 22px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
+}
 
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.card h3 {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 12px;
 }
 
 .card p {
-  margin-top: 10px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #2563eb;
+    font-size: 32px;
+    font-weight: bold;
+    color: #1e293b;
 }
 
+/* =========================
+   FEATURED AUCTIONS
+========================= */
+
 .featured {
-  margin-top: 40px;
+    margin-top: 20px;
 }
 
 .featured h2 {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
+    color: #1e293b;
 }
 
 .auction-container {
-  display: flex;
-  gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
 }
 
-.auction-card {
-  flex: 1;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
+/* =========================
+   AUCTION CARD
+========================= */
 
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+.auction-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.08);
+    transition: 0.2s;
+}
+
+.auction-card:hover {
+    transform: translateY(-4px);
+}
+
+.auction-card::before {
+    content: "LIVE AUCTION";
+    display: block;
+    background-color: #d97706;
+    color: white;
+    font-size: 11px;
+    padding: 8px;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
 .auction-card h3 {
-  margin-bottom: 10px;
+    padding: 20px 20px 10px;
+    color: #1e293b;
 }
 
 .auction-card p {
-  margin-bottom: 15px;
+    padding: 0 20px 20px;
+    color: #64748b;
 }
 
 .auction-card button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 6px;
-  background-color: #2563eb;
-  color: white;
-  cursor: pointer;
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #1e293b;
+    color: white;
+    cursor: pointer;
+}
+
+.auction-card button:hover {
+    background-color: #334155;
+}
+
+/* =========================
+   LOGO
+========================= */
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #d97706;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.logo-icon {
+    font-size: 30px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .stats {
+        flex-direction: column;
+    }
+
+    .hero {
+        padding: 35px;
+    }
+
+    .hero::after {
+        display: none;
+    }
 }
