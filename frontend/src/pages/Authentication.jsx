@@ -57,7 +57,7 @@ function Authentication() {
   return (
     <div className="auth">
 
-      {/* HERO */}
+      
       <section className="auth-hero">
         <h1>{isLogin ? "Login to SecureHub" : "Create Your Account"}</h1>
         <p>Secure and Transparent Online Bidding Platform</p>
@@ -83,7 +83,7 @@ function Authentication() {
       </section>
       <section className="auth-form-section">
 
-        {/* ================= LOGIN ================= */}
+        
         {isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
             <input
