@@ -1,0 +1,198 @@
+.auth {
+    min-height: 100vh;
+    background-color: #eceff1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+
+
+.auth-hero {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-hero h1 {
+    color: #1e293b;
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.auth-hero p {
+    color: #64748b;
+    font-size: 15px;
+}
+
+
+.auth-toggle {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.auth-toggle button {
+    padding: 12px 28px;
+    border: none;
+    background-color: white;
+    color: #1e293b;
+    cursor: pointer;
+    border: 1px solid #d1d5db;
+    transition: 0.2s;
+}
+
+.auth-toggle button:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+.auth-toggle button:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+.auth-toggle button.active {
+    background-color: #d97706;
+    color: white;
+    border-color: #d97706;
+}
+
+.auth-toggle button:hover:not(.active) {
+    background-color: #f8fafc;
+}
+
+
+
+.auth-form-section {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    border-top: 5px solid #d97706;
+}
+
+
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-form p {
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+
+
+.auth-form input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: 0.2s;
+    box-sizing: border-box;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #d97706;
+    box-shadow: 0px 0px 4px rgba(217,119,6,0.3);
+}
+
+
+.form-group {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group input {
+    flex: 1;
+}
+
+
+
+.submit-btn {
+    background-color: #1e293b;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #334155;
+}
+
+.auth-form button[type="button"] {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    color: #1e293b;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.auth-form button[type="button"]:hover {
+    background-color: #f1f5f9;
+}
+
+
+
+.auth-footer {
+    margin-top: 20px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.auth-footer span {
+    color: #d97706;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-footer span:hover {
+    text-decoration: underline;
+}
+
+
+.auth-form-section::before {
+    content: "🔨 SECURE AUCTION ACCESS";
+    display: block;
+    text-align: center;
+    background-color: #d97706;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+
+
+@media (max-width: 768px) {
+
+    .auth-form-section {
+        padding: 25px;
+    }
+
+    .form-group {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .auth-hero h1 {
+        font-size: 28px;
+    }
+}

@@ -1,7 +1,9 @@
 import "./Dashboard.css";
-
+import Navbar from "../components/Navbar";
 function Dashboard() {
   return (
+    <>
+    <Navbar />
     <div className="dashboard">
 
       <section className="hero">
@@ -59,6 +61,7 @@ function Dashboard() {
       </section>
 
     </div>
+    </>
   );
 }
 
