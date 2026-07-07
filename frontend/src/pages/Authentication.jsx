@@ -10,6 +10,7 @@ function Authentication() {
     firstName: "",
     middleName: "",
     lastName: "",
+    phone: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -157,6 +158,14 @@ function Authentication() {
                 required
               />
             </div>
+
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              onChange={handleChange}
+              required
+            />
 
             <input
               type="email"
