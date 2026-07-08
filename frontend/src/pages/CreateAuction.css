@@ -51,3 +51,99 @@
   margin-top: 0;
 }
 
+.create-auction-form input,
+.create-auction-form textarea,
+.create-auction-form select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: 0.2s;
+  box-sizing: border-box;
+  color: #1e293b;
+  background-color: white;
+}
+
+.create-auction-form textarea {
+  resize: vertical;
+}
+
+.create-auction-form input:focus,
+.create-auction-form textarea:focus,
+.create-auction-form select:focus {
+  outline: none;
+  border-color: #1e293b;
+  box-shadow: 0px 0px 4px rgba(30, 41, 59, 0.2);
+}
+
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-upload input[type="file"] {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.form-group {
+  display: flex;
+  gap: 15px;
+}
+
+.form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.created-at-note {
+  margin-top: 16px;
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  font-style: italic;
+}
+
+.submit-btn {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background-color: #334155;
+}
+
+@media (max-width: 768px) {
+  .create-auction-form-section {
+    padding: 25px;
+  }
+
+  .form-group {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .create-auction-hero h1 {
+    font-size: 28px;
+  }
+}
