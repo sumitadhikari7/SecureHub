@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Navbar from "../components/Navbar";
 import "./CreateAuction.css";
 
 function CreateAuction() {
@@ -9,6 +10,7 @@ function CreateAuction() {
     endTime: "",
     status: "upcoming",
   });
+
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -20,6 +22,7 @@ function CreateAuction() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -41,101 +44,112 @@ function CreateAuction() {
   };
 
   return (
-    <div className="create-auction">
-      <div className="create-auction-hero">
-        <h1>Create Auction</h1>
-        <p>List an item and let the bidding begin</p>
-      </div>
+    <>
+      <Navbar />
 
-      <div className="create-auction-form-section">
-        <form className="create-auction-form" onSubmit={handleSubmit}>
-          <label htmlFor="title">Title</label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            placeholder="e.g. Vintage Rolex Watch"
-            value={formData.title}
-            onChange={handleChange}
-            required
-          />
+      <div className="create-auction">
+        <div className="create-auction-hero">
+          <h1>Create Auction</h1>
+          <p>List an item and let the bidding begin</p>
+        </div>
 
-          <label htmlFor="image">Item Image</label>
-          <div className="image-upload">
+        <div className="create-auction-form-section">
+          <form className="create-auction-form" onSubmit={handleSubmit}>
+            <label htmlFor="title">Title</label>
             <input
-              id="image"
-              name="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
+              id="title"
+              name="title"
+              type="text"
+              placeholder="e.g. Vintage Rolex Watch"
+              value={formData.title}
+              onChange={handleChange}
+              required
             />
-            {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="image-preview" />
-            )}
-          </div>
 
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            placeholder="Describe the item's condition, history, and details"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-            required
-          />
-
-          <div className="form-group">
-            <div className="form-field">
-              <label htmlFor="startingPrice">Starting Price ($)</label>
+            <label htmlFor="image">Item Image</label>
+            <div className="image-upload">
               <input
-                id="startingPrice"
-                name="startingPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.startingPrice}
-                onChange={handleChange}
-                required
+                id="image"
+                name="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
               />
+
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="image-preview"
+                />
+              )}
             </div>
 
-            <div className="form-field">
-              <label htmlFor="endTime">End Time</label>
-              <input
-                id="endTime"
-                name="endTime"
-                type="datetime-local"
-                value={formData.endTime}
-                onChange={handleChange}
-                required
-              />
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Describe the item's condition, history, and details"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              required
+            />
+
+            <div className="form-group">
+              <div className="form-field">
+                <label htmlFor="startingPrice">Starting Price ($)</label>
+                <input
+                  id="startingPrice"
+                  name="startingPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.startingPrice}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="endTime">End Time</label>
+                <input
+                  id="endTime"
+                  name="endTime"
+                  type="datetime-local"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <label htmlFor="status">Status</label>
-          <select
-            id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-          >
-            <option value="upcoming">Upcoming</option>
-            <option value="in-progress">In Progress</option>
-          </select>
+            <label htmlFor="status">Status</label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+            >
+              <option value="upcoming">Upcoming</option>
+              <option value="in-progress">In Progress</option>
+            </select>
 
-          <div className="created-at-note">
-            Created at will be set automatically to the current time on submit.
-          </div>
+            <div className="created-at-note">
+              Created at will be set automatically to the current time on
+              submit.
+            </div>
 
-          <button type="submit" className="submit-btn">
-            Create Auction
-          </button>
-        </form>
+            <button type="submit" className="submit-btn">
+              Create Auction
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 export default CreateAuction;
+
