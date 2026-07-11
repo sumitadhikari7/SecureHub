@@ -59,3 +59,30 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', (req, res) => {
   res.status(200).json({ message: "OTP sent successfully! (Mocked)" });
 });
+
+// DASHBOARD DATA API
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    // 💡 Count BOTH active and upcoming statuses so nothing hides!
+    const auctionsCount = await pool.query(
+      "SELECT COUNT(*) FROM auctions WHERE status IN ('active', 'upcoming')"
+    );
+    
+    // Fetch the top 3 items to show on the dashboard stream
+    const featuredItems = await pool.query(
+      "SELECT auction_id, title, starting_price, current_price, image_url FROM auctions WHERE status IN ('active', 'upcoming') LIMIT 3"
+    );
+
+    res.json({
+      stats: {
+        activeAuctions: parseInt(auctionsCount.rows[0].count) || 0,
+        activeBids: 0,
+        watchlist: 0
+      },
+      featured: featuredItems.rows
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error fetching dashboard data" });
+  }
+}); 
