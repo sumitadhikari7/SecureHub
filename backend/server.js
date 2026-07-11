@@ -33,3 +33,24 @@ const upload = multer({ storage: storage });
 
 // Serve your image files publicly so React can load them
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// 🛡️ USER REGISTRATION
+app.post('/api/auth/register', async (req, res) => {
+  const { firstName, middleName, lastName, phone, email } = req.body;
+  const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+
+  try {
+    const newUser = await pool.query(
+      `INSERT INTO users (full_name, email, phone_number, status) 
+       VALUES ($1, $2, $3, 'active') RETURNING *`,
+      [fullName, email, phone]
+    );
+    res.status(201).json({ message: "Registration Successful! Switch to login." });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(400).json({ message: "Email is already registered." });
+    }
+    console.error(err);
+    res.status(500).json({ message: "Database error!" });
+  }
+});
