@@ -86,3 +86,31 @@ app.get('/api/dashboard', async (req, res) => {
     res.status(500).json({ message: "Server error fetching dashboard data" });
   }
 }); 
+
+// CREATE NEW AUCTION (Handles Image upload + fields)
+app.post('/api/auctions', upload.single('image'), async (req, res) => {
+  console.log("RECEIVED BODY:", req.body);
+  console.log("RECEIVED FILE:", req.file);
+
+  const { title, description, startingPrice, endTime, status } = req.body;
+  const imageUrl = req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null;
+  const sellerId = 1;
+
+  try {
+    const newAuction = await pool.query(
+      `INSERT INTO auctions (seller_id, title, description, starting_price, current_price, start_time, end_time, status, image_url) 
+       VALUES ($1, $2, $3, $4, $4, CURRENT_TIMESTAMP, $5, $6, $7) RETURNING *`,
+      [sellerId, title, description, parseFloat(startingPrice), endTime, status === 'in-progress' ? 'active' : 'upcoming', imageUrl]
+    );
+
+    res.status(201).json({ message: "Auction created successfully!", auction: newAuction.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Database failure creating auction" });
+  }
+}); 
+
+// Start listening
+app.listen(5000, () => {
+  console.log("Backend server running smoothly on port 5000!");
+});
