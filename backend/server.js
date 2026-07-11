@@ -19,3 +19,17 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD, 
   port: process.env.DB_PORT,
 });
+
+// 3. Multer configurations for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); 
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); 
+  }
+});
+const upload = multer({ storage: storage });
+
+// Serve your image files publicly so React can load them
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
