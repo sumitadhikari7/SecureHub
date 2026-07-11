@@ -54,3 +54,8 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(500).json({ message: "Database error!" });
   }
 });
+
+// LOGIN MOCK API
+app.post('/api/auth/login', (req, res) => {
+  res.status(200).json({ message: "OTP sent successfully! (Mocked)" });
+});
