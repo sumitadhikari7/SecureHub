@@ -44,3 +44,38 @@ function Profile() {
                   hidden
                 />
               </label>
+              <button
+                type="button"
+                className="remove-photo-btn"
+                onClick={handleRemoveImage}
+              >
+                Remove Photo
+              </button>
+            </div>
+          </div>
+
+          <div className="details-column">
+
+            <form className="profile-form">
+
+              <label>Full Name</label>
+              <input type="text" value={user.fullName} disabled />
+
+              <div className="form-group">
+                <div className="form-field">
+                  <label>Username</label>
+                  <input type="text" value={user.username} disabled />
+                </div>
+
+                <div className="form-field">
+                  <label>Email</label>
+                  <input type="email" value={user.email} disabled />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="form-field">
+                  <label>Phone Number</label>
+                  <input type="text" value={user.phone} disabled />
+                </div>
+
