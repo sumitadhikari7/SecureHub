@@ -1,0 +1,25 @@
+.mybids-page {
+  min-height: 100vh;
+  background-color: #eceff1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 30px;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.mybids-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.mybids-header h1 {
+  color: #1e293b;
+  font-size: 34px;
+  margin-bottom: 8px;
+}
+
+.mybids-header p {
+  color: #64748b;
+  font-size: 15px;
+}
