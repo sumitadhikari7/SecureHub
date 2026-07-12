@@ -62,3 +62,27 @@ function MyBids() {
     if (status === "Won") return "status won";
     return "status";
   };
+return (
+    <>
+        <div className="mybids-page">
+
+        <div className="mybids-header">
+          <h1>My Bids</h1>
+          <p>Track the auctions you've participated in.</p>
+        </div>
+
+        <div className="search-filter">
+
+          <input
+            type="text"
+            placeholder="Search your bids..."
+          />
+
+          <select>
+            <option>All Status</option>
+            <option>Winning</option>
+            <option>Outbid</option>
+            <option>Won</option>
+          </select>
+    </> 
+);
