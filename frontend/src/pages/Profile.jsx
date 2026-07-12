@@ -103,9 +103,6 @@ function Profile() {
               <label>Address</label>
               <input type="text" value={user.address} disabled />
 
-              <label>Password</label>
-              <input type="password" value={user.password} disabled />
-
               <button className="submit-btn">Edit Profile</button>
 
             </form>
