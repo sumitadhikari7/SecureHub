@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import './BrowseAuction.css';
 
 function BrowseAuction() {
   const auctions = [
