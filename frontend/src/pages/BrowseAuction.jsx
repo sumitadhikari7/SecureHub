@@ -82,6 +82,38 @@ function BrowseAuctions() {
         </select>
 
       </div>
+      <div className="auction-grid">
+
+        {auctions.map((item) => (
+
+          <div className="auction-card" key={item.id}>
+
+            <img src={item.image} alt={item.title} />
+
+            <h3>{item.title}</h3>
+
+            <h2>{item.price}</h2>
+
+            <span className="status">
+              {item.status}
+            </span>
+
+            <div className="dates">
+              <p><strong>Added:</strong> {item.start}</p>
+              <p><strong>Ends:</strong> {item.end}</p>
+            </div>
+
+            <button>View Auction</button>
+
+          </div>
+
+        ))}
+
+      </div>
+
+    </div>
+  );
+}
 
 
-  )
+
