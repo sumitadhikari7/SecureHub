@@ -66,5 +66,22 @@ function BrowseAuctions() {
         <h1>Browse Auctions</h1>
         <p>Discover active auctions and place your bids.</p>
     </div>
+    <div className="search-filter">
+
+        <input
+          type="text"
+          placeholder="Search auctions..."
+        />
+
+        <select>
+          <option>All Categories</option>
+          <option>Electronics</option>
+          <option>Vehicles</option>
+          <option>Fashion</option>
+          <option>Collectibles</option>
+        </select>
+
+      </div>
+
 
   )
