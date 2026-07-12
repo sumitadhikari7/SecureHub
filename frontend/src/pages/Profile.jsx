@@ -25,6 +25,7 @@ function Profile() {
     setProfileImage(null);
   };
   const handleLogout = () => {
+    alert('Are you sure you want to logout?')
     console.log("User logged out");
   };
 
