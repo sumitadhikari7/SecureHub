@@ -59,58 +59,61 @@ function BrowseAuction() {
   ];
 
   return(
-    <div className="browse-page">
+    <>
+        <Navbar />
+        <div className="browse-page">
 
-    <div className="browse-header">
-        <h1>Browse Auctions</h1>
-        <p>Discover active auctions and place your bids.</p>
-    </div>
-    <div className="search-filter">
+        <div className="browse-header">
+            <h1>Browse Auctions</h1>
+            <p>Discover active auctions and place your bids.</p>
+        </div>
+        <div className="search-filter">
 
-        <input
-          type="text"
-          placeholder="Search auctions..."
-        />
+            <input
+            type="text"
+            placeholder="Search auctions..."
+            />
 
-        <select>
-          <option>All Categories</option>
-          <option>Electronics</option>
-          <option>Vehicles</option>
-          <option>Fashion</option>
-          <option>Collectibles</option>
-        </select>
+            <select>
+            <option>All Categories</option>
+            <option>Electronics</option>
+            <option>Vehicles</option>
+            <option>Fashion</option>
+            <option>Collectibles</option>
+            </select>
 
-      </div>
-      <div className="auction-grid">
+        </div>
+        <div className="auction-grid">
 
-        {auctions.map((item) => (
+            {auctions.map((item) => (
 
-          <div className="auction-card" key={item.id}>
+            <div className="auction-card" key={item.id}>
 
-            <img src={item.image} alt={item.title} />
+                <img src={item.image} alt={item.title} />
 
-            <h3>{item.title}</h3>
+                <h3>{item.title}</h3>
 
-            <h2>{item.price}</h2>
+                <h2>{item.price}</h2>
 
-            <span className="status">
-              {item.status}
-            </span>
+                <span className="status">
+                {item.status}
+                </span>
 
-            <div className="dates">
-              <p><strong>Added:</strong> {item.start}</p>
-              <p><strong>Ends:</strong> {item.end}</p>
+                <div className="dates">
+                <p><strong>Added:</strong> {item.start}</p>
+                <p><strong>Ends:</strong> {item.end}</p>
+                </div>
+
+                <button>View Auction</button>
+
             </div>
 
-            <button>View Auction</button>
+            ))}
 
-          </div>
+        </div>
 
-        ))}
-
-      </div>
-
-    </div>
+        </div>
+    </>
   );
 }
 
