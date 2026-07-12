@@ -1,4 +1,6 @@
-function BrowseAuctions() {
+import Navbar from "../components/Navbar";
+
+function BrowseAuction() {
   const auctions = [
     {
       id: 1,
@@ -112,5 +114,5 @@ function BrowseAuctions() {
   );
 }
 
-export default BrowseAuctions;
+export default BrowseAuction;
 
