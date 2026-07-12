@@ -84,5 +84,37 @@ return (
             <option>Outbid</option>
             <option>Won</option>
           </select>
+        </div>
+        <div className="auction-grid">
+
+          {bids.map((item) => (
+
+            <div className="auction-card" key={item.id}>
+
+              <img src={item.image} alt={item.title} />
+
+              <h3>{item.title}</h3>
+
+              <h2>{item.currentBid}</h2>
+
+              <span className={getStatusClass(item.status)}>
+                {item.status}
+              </span>
+
+              <div className="dates">
+                <p><strong>My Bid:</strong> {item.myBid}</p>
+                <p><strong>Ends:</strong> {item.end}</p>
+              </div>
+
+              <button>View Auction</button>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
     </> 
 );
