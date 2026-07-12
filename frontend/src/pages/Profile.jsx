@@ -12,7 +12,6 @@ function Profile() {
     phone: "+977 9812345678",
     address: "Kathmandu, Nepal",
     dob: "12 Aug 1998",
-    password: "••••••••••"
   };
   
   const handleImageChange = (e) => {
