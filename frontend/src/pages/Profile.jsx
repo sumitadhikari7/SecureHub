@@ -78,4 +78,29 @@ function Profile() {
                   <label>Phone Number</label>
                   <input type="text" value={user.phone} disabled />
                 </div>
+                <div className="form-field">
+                  <label>Date of Birth</label>
+                  <input type="text" value={user.dob} disabled />
+                </div>
+              </div>
+
+              <label>Address</label>
+              <input type="text" value={user.address} disabled />
+
+              <label>Password</label>
+              <input type="password" value={user.password} disabled />
+
+              <button className="submit-btn">Edit Profile</button>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+    </>
+  );
+}
+
 
