@@ -56,3 +56,9 @@ function MyBids() {
     }
   ];
 
+  const getStatusClass = (status) => {
+    if (status === "Winning") return "status winning";
+    if (status === "Outbid") return "status outbid";
+    if (status === "Won") return "status won";
+    return "status";
+  };
