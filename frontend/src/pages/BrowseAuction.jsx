@@ -1,0 +1,4 @@
+function BrowseAuctions() {
+  const auctions = [
+
+  ];
