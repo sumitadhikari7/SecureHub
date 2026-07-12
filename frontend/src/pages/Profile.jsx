@@ -13,6 +13,18 @@ function Profile() {
     dob: "12 Aug 1998",
     password: "••••••••••"
   };
+  
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setProfileImage(null);
+  };
+
     return (
     <>
       <Navbar />
