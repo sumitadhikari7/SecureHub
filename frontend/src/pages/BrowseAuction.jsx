@@ -59,3 +59,12 @@ function BrowseAuctions() {
   
 
   ];
+  return(
+    <div className="browse-page">
+
+    <div className="browse-header">
+        <h1>Browse Auctions</h1>
+        <p>Discover active auctions and place your bids.</p>
+    </div>
+
+  )
