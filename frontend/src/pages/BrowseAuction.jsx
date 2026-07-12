@@ -55,7 +55,7 @@ function BrowseAuctions() {
       image: "https://via.placeholder.com/300x200"
     }
   ];
-  
+
   return(
     <div className="browse-page">
 
@@ -112,5 +112,5 @@ function BrowseAuctions() {
   );
 }
 
-
+export default BrowseAuctions;
 
