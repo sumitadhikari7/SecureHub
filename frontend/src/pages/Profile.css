@@ -130,3 +130,50 @@
   background-color: #eceff1;
   border-color: #1e293b;
 }
+
+.details-column {
+  flex: 1;
+  padding: 35px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-form label {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.profile-form label:first-of-type {
+  margin-top: 0;
+}
+
+.profile-form input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: 0.2s;
+  box-sizing: border-box;
+  color: #1e293b;
+  background-color: #f8fafc;
+  cursor: not-allowed;
+}
+
+.profile-form input:focus {
+  outline: none;
+  border-color: #d1d5db;
+  box-shadow: none;
+}
+
+.form-group {
+  display: flex;
+  gap: 15px;
+}
