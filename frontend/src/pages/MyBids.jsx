@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import "./MyBids.css";
 
 function MyBids() {
   const bids = [
