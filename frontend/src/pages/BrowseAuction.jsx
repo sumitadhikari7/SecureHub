@@ -1,7 +1,5 @@
 function BrowseAuctions() {
   const auctions = [
-    function BrowseAuctions() {
-  const auctions = [
     {
       id: 1,
       title: "Gaming Laptop",
@@ -56,9 +54,8 @@ function BrowseAuctions() {
       end: "19 Jul 2026",
       image: "https://via.placeholder.com/300x200"
     }
-  
-
   ];
+  
   return(
     <div className="browse-page">
 
