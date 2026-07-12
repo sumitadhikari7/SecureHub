@@ -1,3 +1,5 @@
+import Navbar from "../components/Navbar";
+
 function MyBids() {
   const bids = [
     {
@@ -64,6 +66,7 @@ function MyBids() {
   };
 return (
     <>
+        <Navbar />
         <div className="mybids-page">
 
         <div className="mybids-header">
