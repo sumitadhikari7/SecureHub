@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Navbar from "../components/Navbar";
+
 function Profile() {
   const [profileImage, setProfileImage] = useState(null);
 
@@ -13,7 +15,7 @@ function Profile() {
   };
     return (
     <>
-      
+      <Navbar />
       <div className="profile-page">
 
         <div className="profile-header">
