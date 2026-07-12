@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import "./Profile.css";
 
 function Profile() {
   const [profileImage, setProfileImage] = useState(null);
