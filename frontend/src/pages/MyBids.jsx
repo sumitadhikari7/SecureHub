@@ -119,3 +119,6 @@ return (
     </> 
 );
 }
+
+
+export default MyBids;
