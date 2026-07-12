@@ -25,6 +25,9 @@ function Profile() {
   const handleRemoveImage = () => {
     setProfileImage(null);
   };
+  const handleLogout = () => {
+    console.log("User logged out");
+  };
 
     return (
     <>
@@ -67,6 +70,13 @@ function Profile() {
               >
                 Remove Photo
               </button>
+              <button
+                type="button"
+                className="logout-btn"
+                onClick={handleLogout}
+                >
+                    Logout
+                </button>
             </div>
           </div>
 
