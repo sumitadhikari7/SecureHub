@@ -3,6 +3,7 @@ import Dashboard from "./pages/Dashboard";
 import Authentication from "./pages/Authentication";
 import CreateAuction from "./pages/CreateAuction";
 import BrowseAuction from "./pages/BrowseAuction";
+import Profile from "./pages/Profile";
 function App() {
   return (
     <Routes>
@@ -11,6 +12,7 @@ function App() {
       <Route path="/create-auction" element={<CreateAuction />}/>
       <Route path="/create-auction" element={<CreateAuction />}/>
       <Route path="/browse-auction" element={<BrowseAuction />}/>
+      <Route path="/profile" element={<Profile />}/>
     </Routes>
   );
 }
