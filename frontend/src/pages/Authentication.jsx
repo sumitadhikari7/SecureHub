@@ -42,7 +42,7 @@ function Authentication() {
     }
   };
 
-  // REGISTER submit
+
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
 
