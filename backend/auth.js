@@ -99,3 +99,22 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: "Backend error during processing." });
   }
 });
+
+// ENDPOINT: LOGIN STEP 2 (Verify OTP)
+router.post('/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+  
+  try {
+    const storedOtp = await redisClient.get(`otp:${email}`);
+    if (!storedOtp || storedOtp !== otp) {
+      return res.status(401).json({ message: "Invalid or expired code challenge parameters." });
+    }
+    
+    await redisClient.del(`otp:${email}`); // Burn OTP after verification use
+    res.status(200).json({ message: "Access granted.", token: "mock-jwt-token-string" });
+  } catch (err) {
+    res.status(500).json({ message: "Verification pipeline process failure." });
+  }
+});
+
+module.exports = router;
