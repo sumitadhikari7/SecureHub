@@ -13,3 +13,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+// 2. Setup Redis Cache Client Connection
+const redisClient = redis.createClient();
+redisClient.connect().catch(console.error);
+
