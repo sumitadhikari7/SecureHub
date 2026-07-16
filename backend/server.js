@@ -1,17 +1,20 @@
+require('dotenv').config(); // Absolute top line so variables load first!
+
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { Pool } = require('pg'); 
 const multer = require('multer');
 const path = require('path');
-require('dotenv').config();
+
+const authRouter = require('./auth'); // Imports your backend auth routes
 
 const app = express();
 
-// 1. Middleware setup
+// Middleware setup
 app.use(cors());
 app.use(express.json());
 
-// 2. Database configuration
+// Database configuration for dashboard stats
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -20,7 +23,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// 3. Multer configurations for file uploads
+// Multer storage engine for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/'); 
@@ -31,46 +34,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Serve your image files publicly so React can load them
+// Serve static image uploads folder publicly
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 🛡️ USER REGISTRATION
-app.post('/api/auth/register', async (req, res) => {
-  const { firstName, middleName, lastName, phone, email } = req.body;
-  const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+// Mount the Auth Router under the namespace prefix
+app.use('/api/auth', authRouter); 
 
-  try {
-    const newUser = await pool.query(
-      `INSERT INTO users (full_name, email, phone_number, status) 
-       VALUES ($1, $2, $3, 'active') RETURNING *`,
-      [fullName, email, phone]
-    );
-    res.status(201).json({ message: "Registration Successful! Switch to login." });
-  } catch (err) {
-    if (err.code === '23505') {
-      return res.status(400).json({ message: "Email is already registered." });
-    }
-    console.error(err);
-    res.status(500).json({ message: "Database error!" });
-  }
-});
-
-// LOGIN MOCK API
-app.post('/api/auth/login', (req, res) => {
-  res.status(200).json({ message: "OTP sent successfully! (Mocked)" });
-});
-
-// DASHBOARD DATA API
+// 🏁 FIXED DASHBOARD DATA API
 app.get('/api/dashboard', async (req, res) => {
   try {
-    // 💡 Count BOTH active and upcoming statuses so nothing hides!
     const auctionsCount = await pool.query(
       "SELECT COUNT(*) FROM auctions WHERE status IN ('active', 'upcoming')"
     );
     
-    // Fetch the top 3 items to show on the dashboard stream
+    // ⚡ FIX: Added description and end_time so the frontend cards can render them!
     const featuredItems = await pool.query(
-      "SELECT auction_id, title, starting_price, current_price, image_url FROM auctions WHERE status IN ('active', 'upcoming') LIMIT 3"
+      "SELECT auction_id, title, description, starting_price, current_price, end_time, image_url FROM auctions WHERE status IN ('active', 'upcoming') LIMIT 3"
     );
 
     res.json({
@@ -87,11 +66,38 @@ app.get('/api/dashboard', async (req, res) => {
   }
 }); 
 
-// CREATE NEW AUCTION (Handles Image upload + fields)
+// 🔨 NEW BIDS ENDPOINT (Saves bid values permanently to PostgreSQL)
+app.post('/api/bids', async (req, res) => {
+  try {
+    const { auction_id, bid_amount } = req.body;
+
+    if (!auction_id || !bid_amount) {
+      return res.status(400).json({ message: "Missing required auction_id or bid_amount." });
+    }
+
+    // Update the high bid value inside your database table row
+    const result = await pool.query(
+      "UPDATE auctions SET current_price = $1 WHERE auction_id = $2 RETURNING *",
+      [parseFloat(bid_amount), auction_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Auction item not found." });
+    }
+
+    return res.status(200).json({
+      message: "Bid successfully saved to database!",
+      auction: result.rows[0]
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Database failure updating bid value." });
+  }
+});
+
+// CREATE NEW AUCTION (Handles image upload + text payload fields)
 app.post('/api/auctions', upload.single('image'), async (req, res) => {
   console.log("RECEIVED BODY:", req.body);
-  console.log("RECEIVED FILE:", req.file);
-
   const { title, description, startingPrice, endTime, status } = req.body;
   const imageUrl = req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null;
   const sellerId = 1;
@@ -110,7 +116,7 @@ app.post('/api/auctions', upload.single('image'), async (req, res) => {
   }
 }); 
 
-// Start listening
+// Server execution port listener
 app.listen(5000, () => {
-  console.log("Backend server running smoothly on port 5000!");
+  console.log("🚀 Backend server running smoothly on port 5000!");
 });
