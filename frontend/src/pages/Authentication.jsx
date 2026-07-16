@@ -1,10 +1,11 @@
 import './Authentication.css';
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom"; 
 
 function Authentication() {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState(1); // login steps: 1 = credentials, 2 = OTP
+  const [step, setStep] = useState(1); // 1 = Email & Password input, 2 = OTP screen
+  const navigate = useNavigate(); 
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -24,39 +25,105 @@ function Authentication() {
     });
   };
 
-  const handleLoginSubmit = (e) => {
+  // 🔐 LOGIN STEP 1 → Verify Credentials & Request OTP
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sending OTP to:", formData.email);
-    setStep(2);
-  };
+    console.log("Requesting OTP for:", formData.email);
 
-  // LOGIN STEP 2 → verify OTP
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
-    console.log("OTP entered:", formData.otp);
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: formData.email, 
+          password: formData.password // 🚀 FIXED: Password is now packed and sent!
+        }),
+      });
 
-    if (formData.otp === "123456") {
-      console.log("Login Successful");
-    } else {
-      console.log("Invalid OTP");
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || "OTP sent successfully! Check your email. 📩");
+        setStep(2); // Move user to OTP verification input stage
+      } else {
+        alert(data.message || "Invalid email or password.");
+      }
+    } catch (error) {
+      console.error("Login Step 1 Network Error:", error);
+      alert("Backend server connection failed.");
     }
   };
 
-  // REGISTER submit
-  const handleRegisterSubmit = (e) => {
+  // 🛡️ LOGIN STEP 2 → Verify OTP Code
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Verifying OTP for:", formData.email);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          otp: formData.otp
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Access Granted! Welcome to SecureHub. 🔓");
+        localStorage.setItem('token', data.token); 
+        navigate('/dashboard'); // Kick user into the secure dashboard zone
+      } else {
+        alert(data.message || "Invalid OTP code entered.");
+      }
+    } catch (error) {
+      console.error("Login Step 2 Network Error:", error);
+      alert("Verification server link down.");
+    }
+  };
+
+  // 📝 REGISTER SUBMIT → Write Account to Postgres Database
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      console.log("Passwords do not match");
+      alert("Passwords do not match ❌");
       return;
     }
 
-    console.log("Registration Submitted", formData);
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          middleName: formData.middleName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          email: formData.email,
+          password: formData.password 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || "Registration Successful! 🎉");
+        setIsLogin(true); // Flip over to login layout state
+        setStep(1);
+      } else {
+        alert(data.message || "Registration failed ❌");
+      }
+    } catch (error) {
+      console.error("Registration Connection Error:", error);
+      alert("Could not talk to registration API backend.");
+    }
   };
 
   return (
     <div className="auth">
-
       
       <section className="auth-hero">
         <h1>{isLogin ? "Login to SecureHub" : "Create Your Account"}</h1>
@@ -81,9 +148,10 @@ function Authentication() {
           </button>
         </div>
       </section>
-      <section className="auth-form-section">
 
+      <section className="auth-form-section">
         
+        {/* LOGIN FORM - STEP 1 */}
         {isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
             <input
@@ -107,6 +175,8 @@ function Authentication() {
             </button>
           </form>
         )}
+
+        {/* LOGIN FORM - STEP 2 */}
         {isLogin && step === 2 && (
           <form className="auth-form" onSubmit={handleOtpSubmit}>
             <p>Enter OTP sent to your email</p>
@@ -114,7 +184,7 @@ function Authentication() {
             <input
               type="text"
               name="otp"
-              placeholder="Enter OTP (123456)"
+              placeholder="Enter 6-Digit OTP Code"
               onChange={handleChange}
               required
             />
@@ -125,15 +195,17 @@ function Authentication() {
 
             <button
               type="button"
+              className="back-btn"
               onClick={() => setStep(1)}
             >
               Back
             </button>
           </form>
         )}
+
+        {/* REGISTRATION FORM */}
         {!isLogin && (
           <form className="auth-form" onSubmit={handleRegisterSubmit}>
-
             <div className="form-group">
               <input
                 type="text"
@@ -196,19 +268,13 @@ function Authentication() {
             <button type="submit" className="submit-btn">
               Create Account
             </button>
-
           </form>
         )}
-
       </section>
 
-      {/* FOOTER */}
       <section className="auth-footer">
         <p>
-          {isLogin
-            ? "Don't have an account?"
-            : "Already have an account?"}
-
+          {isLogin ? "Don't have an account?" : "Already have an account?"}
           <span
             onClick={() => {
               setIsLogin(!isLogin);
