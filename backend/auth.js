@@ -46,3 +46,56 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: "Server database failure." });
   }
 });
+
+// ENDPOINT: LOGIN STEP 1 (Verify Password -> Send OTP)
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body; 
+
+  try {
+    // 1. Find user account row
+    const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userCheck.rows.length === 0) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    const user = userCheck.rows[0];
+
+    // 2. 🔐 Guard gate with .trim() to catch hidden whitespace padding
+    if (!user.password || user.password.trim() !== password.trim()) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    // 3. Check account status
+    if (user.status !== 'active') {
+      return res.status(403).json({ message: "Account is suspended or inactive." });
+    }
+
+    // 4. Generate 6-digit verification code string
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // 5. Store OTP code securely in Redis cache for 5 minutes
+    await redisClient.setEx(`otp:${email}`, 300, generatedOtp); 
+
+
+    // 6. 🚀 Fire OTP out via Nodemailer transporter to ANY email!
+    await transporter.sendMail({
+      from: `"SecureHub Security 🛡️" <${process.env.GMAIL_USER}>`, 
+      to: email, // Can be sumitadhikari972@gmail.com, client emails, anything!
+      subject: 'SecureHub Access Code 🛡️',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+          <h2>SecureHub Verification</h2>
+          <p>Your double-factor login validation verification code is:</p>
+          <h1 style="color: #4F46E5; letter-spacing: 2px; font-size: 32px;">${generatedOtp}</h1>
+          <p style="font-size: 12px; color: #666;">This security token is valid for 5 minutes.</p>
+        </div>
+      `
+    });
+
+    console.log(`✉️ OTP email dispatched successfully to: ${email}`);
+    res.status(200).json({ message: "Verification code sent to email." });
+  } catch (err) {
+    console.error("Authentication System Failure Error:", err);
+    res.status(500).json({ message: "Backend error during processing." });
+  }
+});
