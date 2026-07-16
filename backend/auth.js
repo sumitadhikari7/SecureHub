@@ -17,3 +17,12 @@ const pool = new Pool({
 const redisClient = redis.createClient();
 redisClient.connect().catch(console.error);
 
+// 3. Configure Nodemailer Gmail Transporter 📧
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,     
+    pass: process.env.GMAIL_APP_PASS, 
+  },
+});
+
