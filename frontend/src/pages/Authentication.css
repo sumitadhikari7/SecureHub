@@ -179,6 +179,9 @@
     letter-spacing: 1px;
 }
 
+.error-text{
+    color: red;
+}
 
 
 @media (max-width: 768px) {
