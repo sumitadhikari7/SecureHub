@@ -46,7 +46,13 @@ function Authentication() {
 
   const validateRegisterForm = () => {
     const newErrors = {};
-    
+    if (!formData.firstName.trim()){
+      newErrors.firstname = "First name is required";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
   }
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
