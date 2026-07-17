@@ -143,7 +143,7 @@ function Authentication() {
             </button>
           </form>
         )}
-        {!isLogin && (
+        {!isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleRegisterSubmit}>
 
             <div className="form-group">
@@ -209,6 +209,12 @@ function Authentication() {
               Create Account
             </button>
 
+          </form>
+        )}
+
+        {!isLogin && step === 2 && (
+          <form className="auth-form" onSubmit={handleRegisterOtpSubmit}>
+            <p>Enter OTP sent to you email</p>
           </form>
         )}
 
