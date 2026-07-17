@@ -24,7 +24,17 @@ function Authentication() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    if(errors[name]){
+    setErrors({
+      ...errors,
+      [name]: "",
+    });
+  }
+
   };
+
+
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
