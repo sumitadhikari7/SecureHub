@@ -206,7 +206,7 @@ function Authentication() {
             </div>
 
             <button type="submit" className="submit-btn">
-              Create Account
+              Send OTP
             </button>
 
           </form>
@@ -222,6 +222,13 @@ function Authentication() {
               onChange={handleChange}
               required
             />
+
+            <button 
+              type="submit" 
+              className="submit-btn"
+            >
+              Verify OTP & Create Account
+            </button>
           </form>
 
 
