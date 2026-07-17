@@ -44,7 +44,10 @@ function Authentication() {
     }
   };
 
-
+  const validateRegisterForm = () => {
+    const newErrors = {};
+    
+  }
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
 
