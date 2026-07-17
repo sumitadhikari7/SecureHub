@@ -97,6 +97,13 @@ function Authentication() {
 
   const validateLoginForm = () => {
 
+    const newErrors = {};
+      if (!formData.email.trim()) {
+    newErrors.email = "Email address is required";
+    } 
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    newErrors.email = "Enter a valid email address";
+  }
 };
 
   const handleRegisterSubmit = (e) => {
