@@ -30,7 +30,7 @@ function Authentication() {
     setStep(2);
   };
 
-  // LOGIN STEP 2 → verify OTP
+
   const handleOtpSubmit = (e) => {
     e.preventDefault();
     console.log("OTP entered:", formData.otp);
@@ -202,7 +202,6 @@ function Authentication() {
 
       </section>
 
-      {/* FOOTER */}
       <section className="auth-footer">
         <p>
           {isLogin
