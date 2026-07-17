@@ -100,6 +100,10 @@ function Authentication() {
 
     const newErrors = validateRegisterForm();
 
+    if(Object.keys(newErrors).length > 0){
+      setErrors(newErrors);
+      return;
+    } //To not let user proceed if any roor is found
 
     setErrors({});
     console.log("Sending OTP to:", formData.email);
