@@ -229,9 +229,14 @@ function Authentication() {
             >
               Verify OTP & Create Account
             </button>
+
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+            >
+              Back
+            </button>
           </form>
-
-
         )}
 
       </section>
