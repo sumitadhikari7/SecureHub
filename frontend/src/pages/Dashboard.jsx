@@ -53,7 +53,7 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
     const tick = () => {
       const value = calculateTimeLeft();
       setState(value);
-      
+
       if (value.text === "Auction Ended 🛑" && onEnded) {
         onEnded();
       }
@@ -73,10 +73,10 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
 
   return (
     <div className={`timer-badge ${isEnded ? "ended" : isUpcoming ? "upcoming" : "live"}`}>
-      {state.text === "Auction Ended 🛑" 
-        ? "⚠️ Ended" 
-        : isUpcoming 
-          ? `⏳ Starts In: ${state.text}` 
+      {state.text === "Auction Ended 🛑"
+        ? "⚠️ Ended"
+        : isUpcoming
+          ? `⏳ Starts In: ${state.text}`
           : `⚡ ${state.text}`}
     </div>
   );
@@ -89,6 +89,7 @@ function Dashboard() {
   const [bidInputs, setBidInputs] = useState({});
   const [endedAuctions, setEndedAuctions] = useState(() => new Set());
   const [upcomingAuctions, setUpcomingAuctions] = useState(() => new Set()); // 👈 Track upcoming locks
+  const [selectedAuctionId, setSelectedAuctionId] = useState(null); // 👈 Drives the "expand" modal
 
   const fetchDashboardData = async () => {
     try {
@@ -113,7 +114,7 @@ function Dashboard() {
           initialUpcoming.add(auction.auction_id);
         }
       });
-      
+
       setBidInputs(initialBids);
       setUpcomingAuctions(initialUpcoming);
       setLoading(false);
@@ -125,6 +126,15 @@ function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+  }, []);
+
+  // Close the modal with Escape for convenience
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setSelectedAuctionId(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const markAuctionEnded = (id) => {
@@ -229,9 +239,106 @@ function Dashboard() {
     }
   };
 
+  // 🧩 Shared renderer so the grid card and the expanded modal
+  // always show identical info — just at different sizes.
+  const renderAuctionBody = (auction, { expanded = false } = {}) => {
+    const currentPriceNum = Number(auction.current_price ?? auction.currentPrice ?? 0);
+    const startingPriceNum = Number(auction.starting_price ?? auction.startingPrice ?? 0);
+    const targetStartTime = auction.start_time ?? auction.startTime ?? auction.starting_at;
+    const targetEndTime = auction.end_time ?? auction.endTime ?? auction.ending_at;
+    const sellerName = auction.seller_name ?? auction.sellerName ?? "Unknown Seller";
+
+    const displayPrice = currentPriceNum > 0 ? currentPriceNum : startingPriceNum;
+    const minAllowedBid = currentPriceNum > 0 ? currentPriceNum + 1 : startingPriceNum;
+    const currentInputValue = bidInputs[auction.auction_id] ?? minAllowedBid;
+
+    const hasEnded = endedAuctions.has(auction.auction_id);
+    const isUpcoming = upcomingAuctions.has(auction.auction_id);
+    const isInteractionDisabled = hasEnded || isUpcoming;
+
+    return (
+      <>
+        <div className="card-media-box">
+          <img
+            src={auction.image_url ?? auction.imageUrl ?? "https://placehold.co/300x200?text=No+Image"}
+            alt={auction.title}
+            className="auction-img"
+          />
+          <AuctionTimer
+            startTime={targetStartTime}
+            endTime={targetEndTime}
+            onEnded={() => markAuctionEnded(auction.auction_id)}
+            onStarted={() => markAuctionStarted(auction.auction_id)}
+          />
+        </div>
+
+        <div className="auction-info-box">
+          <div className="title-row">
+            <h3>{auction.title}</h3>
+            <span className="seller-tag">👤 {sellerName}</span>
+          </div>
+
+          <p className={`auction-description ${expanded ? "expanded" : ""}`}>
+            {auction.description || "No item summary overview notes provided by the auctioneer."}
+          </p>
+
+          {/* stopPropagation so interacting with bidding controls never triggers the card/modal toggle */}
+          <div className="card-interactive" onClick={(e) => e.stopPropagation()}>
+            <div className="price-tag-box">
+              <span className="price-label">
+                {isUpcoming ? "Starting Price Floor" : currentPriceNum > 0 ? "Current High Bid" : "Starting Price Floor"}
+              </span>
+              <span className="price-amount">${displayPrice}</span>
+            </div>
+
+            <div className="bid-controller">
+              <button
+                className="control-btn minus"
+                onClick={() => handleDecrement(auction.auction_id, minAllowedBid)}
+                disabled={isInteractionDisabled || currentInputValue <= minAllowedBid}
+              >
+                -
+              </button>
+
+              <input
+                type="number"
+                className="bid-number-input"
+                value={currentInputValue}
+                min={minAllowedBid}
+                disabled={isInteractionDisabled}
+                onChange={(e) => handleInputChange(auction.auction_id, e.target.value)}
+                onBlur={() => handleInputBlur(auction.auction_id, minAllowedBid)}
+              />
+
+              <button
+                className="control-btn plus"
+                onClick={() => handleIncrement(auction.auction_id)}
+                disabled={isInteractionDisabled}
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              className="place-bid-btn"
+              onClick={() => handlePlaceBid(auction.auction_id, auction.title, minAllowedBid)}
+              disabled={isInteractionDisabled}
+            >
+              {hasEnded ? "Auction Ended" : isUpcoming ? "Locked Until Start" : "Submit Bid 🔨"}
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   if (loading) {
     return <div className="loading" style={{ textAlign: "center", marginTop: "50px" }}>Loading SecureHub Dashboard...</div>;
   }
+
+  const selectedAuction = featuredAuctions.find((a) => a.auction_id === selectedAuctionId) || null;
+  const selectedHasEnded = selectedAuction ? endedAuctions.has(selectedAuction.auction_id) : false;
+  const selectedIsUpcoming = selectedAuction ? upcomingAuctions.has(selectedAuction.auction_id) : false;
 
   return (
     <>
@@ -265,89 +372,16 @@ function Dashboard() {
               <p>No active auctions available right now.</p>
             ) : (
               featuredAuctions.map((auction) => {
-                const currentPriceNum = Number(auction.current_price ?? auction.currentPrice ?? 0);
-                const startingPriceNum = Number(auction.starting_price ?? auction.startingPrice ?? 0);
-                const targetStartTime = auction.start_time ?? auction.startTime ?? auction.starting_at;
-                const targetEndTime = auction.end_time ?? auction.endTime ?? auction.ending_at;
-                const sellerName = auction.seller_name ?? auction.sellerName ?? "Unknown Seller";
-
-                const displayPrice = currentPriceNum > 0 ? currentPriceNum : startingPriceNum;
-                const minAllowedBid = currentPriceNum > 0 ? currentPriceNum + 1 : startingPriceNum;
-                const currentInputValue = bidInputs[auction.auction_id] ?? minAllowedBid;
-                
                 const hasEnded = endedAuctions.has(auction.auction_id);
                 const isUpcoming = upcomingAuctions.has(auction.auction_id);
-                const isInteractionDisabled = hasEnded || isUpcoming;
 
                 return (
-                  <div className={`auction-card ${hasEnded ? "ended" : isUpcoming ? "upcoming" : ""}`} key={auction.auction_id}>
-                    <div className="card-media-box">
-                      <img
-                        src={auction.image_url ?? auction.imageUrl ?? "https://placehold.co/300x200?text=No+Image"}
-                        alt={auction.title}
-                        className="auction-img"
-                      />
-                      <AuctionTimer
-                        startTime={targetStartTime}
-                        endTime={targetEndTime}
-                        onEnded={() => markAuctionEnded(auction.auction_id)}
-                        onStarted={() => markAuctionStarted(auction.auction_id)}
-                      />
-                    </div>
-
-                    <div className="auction-info-box">
-                      <div className="title-row">
-                        <h3>{auction.title}</h3>
-                        <span className="seller-tag">👤 {sellerName}</span>
-                      </div>
-
-                      <p className="auction-description">
-                        {auction.description || "No item summary overview notes provided by the auctioneer."}
-                      </p>
-
-                      <div className="price-tag-box">
-                        <span className="price-label">
-                          {isUpcoming ? "Starting Price Floor" : currentPriceNum > 0 ? "Current High Bid" : "Starting Price Floor"}
-                        </span>
-                        <span className="price-amount">${displayPrice}</span>
-                      </div>
-
-                      <div className="bid-controller">
-                        <button
-                          className="control-btn minus"
-                          onClick={() => handleDecrement(auction.auction_id, minAllowedBid)}
-                          disabled={isInteractionDisabled || currentInputValue <= minAllowedBid}
-                        >
-                          -
-                        </button>
-
-                        <input
-                          type="number"
-                          className="bid-number-input"
-                          value={currentInputValue}
-                          min={minAllowedBid}
-                          disabled={isInteractionDisabled}
-                          onChange={(e) => handleInputChange(auction.auction_id, e.target.value)}
-                          onBlur={() => handleInputBlur(auction.auction_id, minAllowedBid)}
-                        />
-
-                        <button
-                          className="control-btn plus"
-                          onClick={() => handleIncrement(auction.auction_id)}
-                          disabled={isInteractionDisabled}
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button
-                        className="place-bid-btn"
-                        onClick={() => handlePlaceBid(auction.auction_id, auction.title, minAllowedBid)}
-                        disabled={isInteractionDisabled}
-                      >
-                        {hasEnded ? "Auction Ended" : isUpcoming ? "Locked Until Start" : "Submit Bid 🔨"}
-                      </button>
-                    </div>
+                  <div
+                    className={`auction-card ${hasEnded ? "ended" : isUpcoming ? "upcoming" : ""}`}
+                    key={auction.auction_id}
+                    onClick={() => setSelectedAuctionId(auction.auction_id)}
+                  >
+                    {renderAuctionBody(auction)}
                   </div>
                 );
               })
@@ -355,6 +389,25 @@ function Dashboard() {
           </div>
         </section>
       </div>
+
+      {/* 🔍 Expanded view — click any card to see everything, including the full description */}
+      {selectedAuction && (
+        <div className="modal-overlay" onClick={() => setSelectedAuctionId(null)}>
+          <div
+            className={`modal-content ${selectedHasEnded ? "ended" : selectedIsUpcoming ? "upcoming" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              onClick={() => setSelectedAuctionId(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            {renderAuctionBody(selectedAuction, { expanded: true })}
+          </div>
+        </div>
+      )}
     </>
   );
 }

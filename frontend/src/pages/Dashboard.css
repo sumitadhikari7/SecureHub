@@ -107,6 +107,8 @@
     /* 🛠️ FIX: Put a strict max-width limit so a single card stays standard-sized */
     max-width: 350px;
     width: 100%;
+    /* 🆕 Cards are now clickable to open the expanded view */
+    cursor: pointer;
 }
 
 .auction-card:hover {
@@ -241,6 +243,16 @@
     height: 36px; 
 }
 
+/* 🆕 Full, unclamped description used inside the expanded modal view */
+.auction-description.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    text-overflow: unset;
+    height: auto;
+    max-height: none;
+}
+
 /* ==================== CONTROLS & BUTTONS ==================== */
 .price-tag-box {
     display: flex;
@@ -342,6 +354,13 @@
     cursor: not-allowed;
 }
 
+/* 🆕 Wrapper around the bidding controls so clicks there never bubble up
+   and re-trigger the card's "open modal" handler. display:contents keeps
+   the existing flex/layout behavior of .auction-info-box untouched. */
+.card-interactive {
+    display: contents;
+}
+
 /* ==================== LOGO AND RESPONSIVENESS ==================== */
 .logo {
     display: flex;
@@ -377,4 +396,93 @@
 .timer-badge.upcoming {
   background-color: #fef08a; /* Soft warning yellow */
   color: #854d0e;
+}
+
+/* ==================== EXPANDED CARD MODAL ==================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    /* animate in slightly so it doesn't feel like it just teleports on screen */
+    animation: modal-pop 0.15s ease-out;
+}
+
+@keyframes modal-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-content::before {
+    content: "LIVE AUCTION 🔨";
+    display: block;
+    background-color: #d97706;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 8px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.modal-content.ended::before {
+    content: "CLOSED AUCTION 🛑";
+    background-color: #64748b;
+}
+
+.modal-content.upcoming::before {
+    content: "UPCOMING AUCTION ⏳";
+    background-color: #d97706;
+}
+
+.modal-content .card-media-box {
+    height: 300px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.75);
+    color: white;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: rgba(15, 23, 42, 0.9);
 }
