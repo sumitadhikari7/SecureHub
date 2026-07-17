@@ -74,7 +74,11 @@ function Authentication() {
       newErrors.password = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
     }
  
-
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    }else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
   }
 
   const handleRegisterSubmit = (e) => {
