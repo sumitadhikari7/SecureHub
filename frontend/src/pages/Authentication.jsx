@@ -188,11 +188,10 @@ function Authentication() {
           <form className="auth-form" onSubmit={handleLoginSubmit}>
           <div className="input-field">
             <input
-              type="email"
+              type="text"
               name="email"
               placeholder="Email Address"
               onChange={handleChange}
-              required
             />
             <span className="error-text">
               {errors.email || ""}
@@ -203,7 +202,6 @@ function Authentication() {
               name="password"
               placeholder="Password"
               onChange={handleChange}
-              required
             />
             <span className="error-text">
               {errors.password || ""}
