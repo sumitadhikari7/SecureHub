@@ -205,61 +205,96 @@ function Authentication() {
         {!isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleRegisterSubmit}>
 
-            <div className="form-group">
+          <div className="form-group">
+            <div className="input-field">
               <input
                 type="text"
                 name="firstName"
                 placeholder="First Name"
                 onChange={handleChange}
               />
-              {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+              <span className="error-text">
+                {errors.firstName || ""}
+              </span>
+            </div>
 
+            <div className="input-field">
               <input
                 type="text"
                 name="middleName"
                 placeholder="Middle Name"
                 onChange={handleChange}
               />
+              <span className="error-text">
+                {errors.middleName || ""}
+              </span>
+            </div>
 
+            <div className="input-field">
               <input
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
                 onChange={handleChange}
               />
-              {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+              <span className="error-text">
+                {errors.lastName || ""}
+              </span>
             </div>
+          </div>
 
+
+          <div className="input-field">
             <input
               type="tel"
               name="phone"
               placeholder="Phone Number"
               onChange={handleChange}
             />
-            {errors.phone && <span className="error-text">{errors.phone}</span>}
+            <span className="error-text">
+              {errors.phone || ""}
+            </span>
+          </div>
+
+
+          <div className="input-field">
             <input
               type="text"
               name="email"
               placeholder="Email Address"
               onChange={handleChange}
             />
-            {errors.email && <span className="error-text">{errors.email}</span>}
-            <div className="form-group">
+            <span className="error-text">
+              {errors.email || ""}
+            </span>
+          </div>
+
+
+          <div className="form-group">
+            <div className="input-field">
               <input
                 type="password"
                 name="password"
                 placeholder="Password"
                 onChange={handleChange}
               />
-              {errors.password && <span className="error-text">{errors.password}</span>}
+              <span className="error-text">
+                {errors.password || ""}
+              </span>
+            </div>
+
+            <div className="input-field">
               <input
                 type="password"
                 name="confirmPassword"
                 placeholder="Confirm Password"
                 onChange={handleChange}
               />
-              {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
+              <span className="error-text">
+                {errors.confirmPassword || ""}
+              </span>
             </div>
+          </div>
 
             <button type="submit" className="submit-btn">
               Send OTP
