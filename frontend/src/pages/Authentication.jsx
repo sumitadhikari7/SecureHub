@@ -56,9 +56,16 @@ function Authentication() {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^\d{1,10}$/.test(formData.phone)) {
+    }else if (!/^\d{1,10}$/.test(formData.phone)) {
       newErrors.phone = "Phone number must be numeric and no more than 10 digits";
     }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email address is required";
+    }else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+
   }
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
