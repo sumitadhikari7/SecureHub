@@ -100,10 +100,6 @@ function Authentication() {
 
     const newErrors = validateRegisterForm();
 
-    if (formData.password !== formData.confirmPassword) {
-      console.log("Passwords do not match");
-      return;
-    }
 
     setErrors({});
     console.log("Sending OTP to:", formData.email);
