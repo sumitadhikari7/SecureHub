@@ -54,9 +54,11 @@ function Authentication() {
     console.log("Sending OTP to:", formData.email);
     setStep(2);
   };
-  
-  const handleRegisterOtpSubmit = (e) => {
 
+  const handleRegisterOtpSubmit = (e) => {
+    e.preventDefault();
+    console.log("OTP entered:", formData.otp);
+    
   }
 
   return (
