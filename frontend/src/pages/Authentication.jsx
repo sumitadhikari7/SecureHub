@@ -19,10 +19,12 @@ function Authentication() {
 
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
+    const handleChange = (e) => {
+      const {name, value} = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]:value
     });
 
     // field error disappears after update
@@ -34,8 +36,6 @@ function Authentication() {
   }
 
   };
-
-
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
