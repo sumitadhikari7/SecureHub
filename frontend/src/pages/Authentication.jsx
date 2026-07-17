@@ -58,7 +58,9 @@ function Authentication() {
   const handleRegisterOtpSubmit = (e) => {
     e.preventDefault();
     console.log("OTP entered:", formData.otp);
-    
+    if(formData.otp === "123456"){
+      console.log("Registration submitted", formData)
+    }
   }
 
   return (
