@@ -210,7 +210,6 @@ function Authentication() {
                 name="firstName"
                 placeholder="First Name"
                 onChange={handleChange}
-                required
               />
 
               <input
@@ -225,7 +224,6 @@ function Authentication() {
                 name="lastName"
                 placeholder="Last Name"
                 onChange={handleChange}
-                required
               />
             </div>
 
@@ -234,15 +232,13 @@ function Authentication() {
               name="phone"
               placeholder="Phone Number"
               onChange={handleChange}
-              required
             />
 
             <input
-              type="email"
+              type="text"
               name="email"
               placeholder="Email Address"
               onChange={handleChange}
-              required
             />
 
             <div className="form-group">
@@ -251,7 +247,6 @@ function Authentication() {
                 name="password"
                 placeholder="Password"
                 onChange={handleChange}
-                required
               />
 
               <input
@@ -259,7 +254,6 @@ function Authentication() {
                 name="confirmPassword"
                 placeholder="Confirm Password"
                 onChange={handleChange}
-                required
               />
             </div>
 
