@@ -179,11 +179,13 @@
     letter-spacing: 1px;
 }
 
-.error-text{
-    color: red;
-    font-size: 0.8 rem;
-    display: block;
-    margin-top: 4px;
+.error-text {
+  display: block;
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 
