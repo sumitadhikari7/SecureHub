@@ -87,7 +87,10 @@ function Authentication() {
 
           <button
             className={!isLogin ? "active" : ""}
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false);
+              setStep(1);
+            }}
           >
             Register
           </button>
@@ -214,7 +217,7 @@ function Authentication() {
 
         {!isLogin && step === 2 && (
           <form className="auth-form" onSubmit={handleRegisterOtpSubmit}>
-            <p>Enter OTP sent to you email</p>
+            <p>Enter OTP sent to your email</p>
             <input 
               type="text"
               name="otp"
