@@ -10,7 +10,7 @@ function BrowseAuction() {
       status: "Current Bid",
       start: "10 Jul 2026",
       end: "15 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
+      image: "https://bigbyte.com.np/wp-content/uploads/2025/07/Competitive-pricing-on-gaming-laptops-in-Nepal-600x600.jpg"
     },
     {
       id: 2,
@@ -19,7 +19,7 @@ function BrowseAuction() {
       status: "Starting Price",
       start: "11 Jul 2026",
       end: "18 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
+      image: "https://qualitycomputer.com.np/web/image/product.product/50748/image_1024/Apple%20iPhone%2015%20%28Black%2C%20128GB%29?unique=23046f0"
     },
     {
       id: 3,
@@ -28,35 +28,35 @@ function BrowseAuction() {
       status: "Current Bid",
       start: "8 Jul 2026",
       end: "14 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQd_pXy4aWe2m4ARs0jvJx_QvKEj7yNhpGdekDSEimus8kHcvLG8N7sN4&s=10"
     },
-    {
-      id: 4,
-      title: "PlayStation 5",
-      price: "$520",
-      status: "Current Bid",
-      start: "9 Jul 2026",
-      end: "16 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 5,
-      title: "Apple Watch",
-      price: "$220",
-      status: "Starting Price",
-      start: "12 Jul 2026",
-      end: "20 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 6,
-      title: "Mountain Bike",
-      price: "$390",
-      status: "Current Bid",
-      start: "10 Jul 2026",
-      end: "19 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    }
+    // {
+    //   id: 4,
+    //   title: "PlayStation 5",
+    //   price: "$520",
+    //   status: "Current Bid",
+    //   start: "9 Jul 2026",
+    //   end: "16 Jul 2026",
+    //   image: "https://via.placeholder.com/300x200"
+    // },
+    // {
+    //   id: 5,
+    //   title: "Apple Watch",
+    //   price: "$220",
+    //   status: "Starting Price",
+    //   start: "12 Jul 2026",
+    //   end: "20 Jul 2026",
+    //   image: "https://via.placeholder.com/300x200"
+    // },
+    // {
+    //   id: 6,
+    //   title: "Mountain Bike",
+    //   price: "$390",
+    //   status: "Current Bid",
+    //   start: "10 Jul 2026",
+    //   end: "19 Jul 2026",
+    //   image: "https://via.placeholder.com/300x200"
+    // }
   ];
 
   return(
