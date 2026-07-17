@@ -58,7 +58,7 @@ function Authentication() {
   const validateRegisterForm = () => {
     const newErrors = {};
     if (!formData.firstName.trim()){
-      newErrors.firstname = "First name is required";
+      newErrors.firstName = "First name is required";
     }
 
     if (!formData.lastName.trim()) {
@@ -211,6 +211,7 @@ function Authentication() {
                 placeholder="First Name"
                 onChange={handleChange}
               />
+              {errors.firstName && <span className="error-text">{errors.firstName}</span>}
 
               <input
                 type="text"
@@ -225,6 +226,7 @@ function Authentication() {
                 placeholder="Last Name"
                 onChange={handleChange}
               />
+              {errors.lastName && <span className="error-text">{errors.lastName}</span>}
             </div>
 
             <input
@@ -233,14 +235,14 @@ function Authentication() {
               placeholder="Phone Number"
               onChange={handleChange}
             />
-
+            {errors.phone && <span className="error-text">{errors.phone}</span>}
             <input
               type="text"
               name="email"
               placeholder="Email Address"
               onChange={handleChange}
             />
-
+            {errors.email && <span className="error-text">{errors.email}</span>}
             <div className="form-group">
               <input
                 type="password"
@@ -248,13 +250,14 @@ function Authentication() {
                 placeholder="Password"
                 onChange={handleChange}
               />
-
+              {errors.password && <span className="error-text">{errors.password}</span>}
               <input
                 type="password"
                 name="confirmPassword"
                 placeholder="Confirm Password"
                 onChange={handleChange}
               />
+              {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
             </div>
 
             <button type="submit" className="submit-btn">
