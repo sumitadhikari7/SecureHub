@@ -186,6 +186,7 @@ function Authentication() {
         
         {isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
+          <div className="input-field">
             <input
               type="email"
               name="email"
@@ -207,7 +208,7 @@ function Authentication() {
             <span className="error-text">
               {errors.password || ""}
             </span>
-    
+          </div>
             <button type="submit" className="submit-btn">
               Send OTP
             </button>
