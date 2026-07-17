@@ -66,7 +66,17 @@ function Authentication() {
       newErrors.email = "Enter a valid email address";
     }
 
+    const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^_-])[A-Za-z\d@$!%*?&#^_-]{8,}$/;
+ 
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordRules.test(formData.password)) {
+      newErrors.password = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+    }
+ 
+
   }
+
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
 
