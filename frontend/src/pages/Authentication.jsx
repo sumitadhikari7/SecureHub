@@ -39,6 +39,15 @@ function Authentication() {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
+
+    console.log("Login validation result:", newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     console.log("Sending OTP to:", formData.email);
     setStep(2);
   };
@@ -108,6 +117,8 @@ function Authentication() {
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
+
+    return newErrors;
 };
 
   const handleRegisterSubmit = (e) => {
