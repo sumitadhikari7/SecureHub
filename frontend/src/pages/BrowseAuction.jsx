@@ -30,33 +30,33 @@ function BrowseAuction() {
       end: "14 Jul 2026",
       image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQd_pXy4aWe2m4ARs0jvJx_QvKEj7yNhpGdekDSEimus8kHcvLG8N7sN4&s=10"
     },
-    // {
-    //   id: 4,
-    //   title: "PlayStation 5",
-    //   price: "$520",
-    //   status: "Current Bid",
-    //   start: "9 Jul 2026",
-    //   end: "16 Jul 2026",
-    //   image: "https://via.placeholder.com/300x200"
-    // },
-    // {
-    //   id: 5,
-    //   title: "Apple Watch",
-    //   price: "$220",
-    //   status: "Starting Price",
-    //   start: "12 Jul 2026",
-    //   end: "20 Jul 2026",
-    //   image: "https://via.placeholder.com/300x200"
-    // },
-    // {
-    //   id: 6,
-    //   title: "Mountain Bike",
-    //   price: "$390",
-    //   status: "Current Bid",
-    //   start: "10 Jul 2026",
-    //   end: "19 Jul 2026",
-    //   image: "https://via.placeholder.com/300x200"
-    // }
+    {
+      id: 4,
+      title: "PlayStation 5",
+      price: "$520",
+      status: "Current Bid",
+      start: "9 Jul 2026",
+      end: "16 Jul 2026",
+      image: "https://via.placeholder.com/300x200"
+    },
+    {
+      id: 5,
+      title: "Apple Watch",
+      price: "$220",
+      status: "Starting Price",
+      start: "12 Jul 2026",
+      end: "20 Jul 2026",
+      image: "https://via.placeholder.com/300x200"
+    },
+    {
+      id: 6,
+      title: "Mountain Bike",
+      price: "$390",
+      status: "Current Bid",
+      start: "10 Jul 2026",
+      end: "19 Jul 2026",
+      image: "https://via.placeholder.com/300x200"
+    }
   ];
 
   return(
