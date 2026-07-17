@@ -101,9 +101,13 @@ function Authentication() {
       if (!formData.email.trim()) {
     newErrors.email = "Email address is required";
     } 
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    newErrors.email = "Enter a valid email address";
-  }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    }
 };
 
   const handleRegisterSubmit = (e) => {
