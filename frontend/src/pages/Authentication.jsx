@@ -95,6 +95,10 @@ function Authentication() {
 
   }
 
+  const validateLoginForm = () => {
+
+};
+
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
 
