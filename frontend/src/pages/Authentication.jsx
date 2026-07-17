@@ -61,6 +61,9 @@ function Authentication() {
     if(formData.otp === "123456"){
       console.log("Registration submitted", formData)
     }
+    else{
+      console.log("Invalid otp");
+    }
   }
 
   return (
