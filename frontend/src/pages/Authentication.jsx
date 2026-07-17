@@ -4,7 +4,7 @@ import { useState } from "react";
 
 function Authentication() {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState(1); // login steps: 1 = credentials, 2 = OTP
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -51,8 +51,10 @@ function Authentication() {
       return;
     }
 
-    console.log("Registration Submitted", formData);
+    console.log("Sending OTP to:", formData.email);
+    setStep(2);
   };
+  
 
   return (
     <div className="auth">
