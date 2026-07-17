@@ -215,7 +215,16 @@ function Authentication() {
         {!isLogin && step === 2 && (
           <form className="auth-form" onSubmit={handleRegisterOtpSubmit}>
             <p>Enter OTP sent to you email</p>
+            <input 
+              type="text"
+              name="otp"
+              placeholder="Enter OTP (123456)"
+              onChange={handleChange}
+              required
+            />
           </form>
+
+
         )}
 
       </section>
