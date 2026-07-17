@@ -25,6 +25,7 @@ function Authentication() {
       [e.target.name]: e.target.value,
     });
 
+    // field error disappears after update
     if(errors[name]){
     setErrors({
       ...errors,
@@ -97,11 +98,14 @@ function Authentication() {
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
 
+    const newErrors = validateRegisterForm();
+
     if (formData.password !== formData.confirmPassword) {
       console.log("Passwords do not match");
       return;
     }
 
+    setErrors({});
     console.log("Sending OTP to:", formData.email);
     setStep(2);
   };
