@@ -6,7 +6,7 @@ function Navbar() {
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard" },
-    { label: "Auctions", path: "/auctions" },
+    { label: "Browse Auctions", path: "/browse-auction" },
     { label: "Create Auction", path: "/create-auction" },
     { label: "My Bids", path: "/my-bids" },
     { label: "Profile", path: "/profile" },
@@ -15,7 +15,9 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="logo">
-        <h2>SecureHub</h2>
+        <Link to="/dashboard">
+          <h2>SecureHub</h2>
+        </Link>
       </div>
 
       <ul className="nav-links">
