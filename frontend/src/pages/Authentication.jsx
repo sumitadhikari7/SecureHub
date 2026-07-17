@@ -37,33 +37,6 @@ function Authentication() {
 
   };
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-
-    console.log("Login validation result:", newErrors)
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    console.log("Sending OTP to:", formData.email);
-    setStep(2);
-  };
-
-
-  const handleOtpSubmit = (e) => {
-    e.preventDefault();
-    console.log("OTP entered:", formData.otp);
-
-    if (formData.otp === "123456") {
-      console.log("Login Successful");
-    } else {
-      console.log("Invalid OTP");
-    }
-  };
-
   const validateRegisterForm = () => {
     const newErrors = {};
     if (!formData.firstName.trim()){
@@ -120,6 +93,36 @@ function Authentication() {
 
     return newErrors;
 };
+
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+
+    const newErrors = validateLoginForm();
+
+    console.log("Login validation result:", newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    console.log("Sending OTP to:", formData.email);
+    setStep(2);
+  };
+
+
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    console.log("OTP entered:", formData.otp);
+
+    if (formData.otp === "123456") {
+      console.log("Login Successful");
+    } else {
+      console.log("Invalid OTP");
+    }
+  };
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
