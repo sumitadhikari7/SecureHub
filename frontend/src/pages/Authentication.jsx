@@ -99,7 +99,8 @@ function Authentication() {
     e.preventDefault();
 
     const newErrors = validateRegisterForm();
-
+    console.log("VALIDATION RESULT:", newErrors);
+    
     if(Object.keys(newErrors).length > 0){
       setErrors(newErrors);
       return;
