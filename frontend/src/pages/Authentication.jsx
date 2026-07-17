@@ -79,6 +79,9 @@ function Authentication() {
     }else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
+
+    return newErrors;
+
   }
 
   const handleRegisterSubmit = (e) => {
