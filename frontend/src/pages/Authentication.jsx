@@ -17,6 +17,8 @@ function Authentication() {
     otp: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
