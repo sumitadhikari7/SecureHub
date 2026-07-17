@@ -193,6 +193,9 @@ function Authentication() {
               onChange={handleChange}
               required
             />
+            <span className="error-text">
+              {errors.email || ""}
+            </span>
 
             <input
               type="password"
@@ -201,7 +204,10 @@ function Authentication() {
               onChange={handleChange}
               required
             />
-
+            <span className="error-text">
+              {errors.password || ""}
+            </span>
+    
             <button type="submit" className="submit-btn">
               Send OTP
             </button>
