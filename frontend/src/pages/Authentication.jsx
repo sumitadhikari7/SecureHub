@@ -55,6 +55,9 @@ function Authentication() {
     setStep(2);
   };
   
+  const handleRegisterOtpSubmit = (e) => {
+
+  }
 
   return (
     <div className="auth">
