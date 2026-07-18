@@ -96,3 +96,29 @@ function AuctionDetails() {
       </>
     );
   }
+  const currentPrice = auction.current_price || auction.starting_price;
+  const hasBids = auction.bid_count > 0;
+
+  return (
+    <>
+      <Navbar />
+      <div className="auction-details-page">
+        <button className="back-button" onClick={() => navigate(-1)}>
+          &larr; Back
+        </button>
+
+        <div className="auction-details-card">
+          <img
+            src={auction.image_url || "https://via.placeholder.com/500x350"}
+            alt={auction.title}
+            className="auction-details-image"
+          />
+
+          <div className="auction-details-info">
+            <span className={`status status-${auction.status}`}>
+              {auction.status === 'active'
+                ? 'Active'
+                : auction.status === 'upcoming'
+                ? 'Upcoming'
+                : 'Ended'}
+            </span>
