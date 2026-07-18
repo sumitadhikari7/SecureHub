@@ -176,3 +176,42 @@ function AuctionDetails() {
               <p><strong>Starts:</strong> {new Date(auction.start_time).toLocaleString()}</p>
               <p><strong>Ends:</strong> {new Date(auction.end_time).toLocaleString()}</p>
             </div>
+
+            {auction.status === 'active' && (
+              <form className="bid-form" onSubmit={handleBidSubmit}>
+                <label htmlFor="bidAmount">Your bid (must be more than ${currentPrice})</label>
+                <div className="bid-input-row">
+                  <input
+                    id="bidAmount"
+                    type="number"
+                    step="0.01"
+                    min={Number(currentPrice) + 0.01}
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    placeholder={`> $${currentPrice}`}
+                    required
+                  />
+                  <button type="submit" disabled={submitting}>
+                    {submitting ? "Placing bid..." : "Place Bid"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {auction.status === 'upcoming' && (
+              <p className="notice">This auction hasn't started yet — check back soon.</p>
+            )}
+
+            {bidStatus && (
+              <p className={bidStatus.type === "error" ? "error-message" : "success-message"}>
+                {bidStatus.message}
+              </p>
+            )}
+
+            {/* Recent bid history */}
+            {auction.recent_bids && auction.recent_bids.length > 0 && (
+              <div className="bid-history">
+                <h3>Recent Bids</h3>
+                <ul>
+                  {auction.recent_bids.map((bid, idx) => (
+                    <li key={idx}></li>
