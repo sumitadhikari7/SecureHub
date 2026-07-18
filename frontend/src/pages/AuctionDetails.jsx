@@ -74,3 +74,25 @@ function AuctionDetails() {
       setSubmitting(false);
     }
   };
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="auction-details-page">
+          <p>Loading auction...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="auction-details-page">
+          <p className="error-message">{error}</p>
+          <button onClick={() => navigate("/browse")}>Back to Browse</button>
+        </div>
+      </>
+    );
+  }
