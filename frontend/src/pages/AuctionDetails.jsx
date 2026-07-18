@@ -54,6 +54,23 @@ function AuctionDetails() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(bidAmount),
-          // TODO: replace with the actual logged-in user's id once auth is wired up
+          
         }),
       });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setBidStatus({ type: "error", message: result.error || "Bid failed." });
+      } else {
+        setBidStatus({ type: "success", message: "Bid placed successfully!" });
+        setBidAmount("");
+        // Re-fetch so highest bid / bidder / history all update together
+        fetchAuction();
+      }
+    } catch (err) {
+      console.error("Failed to place bid:", err);
+      setBidStatus({ type: "error", message: "Something went wrong. Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  };
