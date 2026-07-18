@@ -32,3 +32,17 @@ function AuctionDetails() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAuction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const handleBidSubmit = async (e) => {
+    e.preventDefault();
+    setBidStatus(null);
+
+    if (!bidAmount || isNaN(bidAmount)) {
+      setBidStatus({ type: "error", message: "Enter a valid bid amount." });
+      return;
+    }
