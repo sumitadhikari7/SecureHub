@@ -122,3 +122,32 @@ function AuctionDetails() {
                 ? 'Upcoming'
                 : 'Ended'}
             </span>
+            <h1>{auction.title}</h1>
+            <p className="description">{auction.description}</p>
+
+            <div className="price-block">
+              <span className="label">
+                {auction.status === 'ended' ? 'Final Price' : 'Current Price'}
+              </span>
+              <span className="price">${currentPrice}</span>
+            </div>
+
+            {/* Winner / highest bidder / bid stats */}
+            {auction.status === 'ended' ? (
+  <div className={`result-block ${auction.highest_bidder ? 'won' : 'no-winner'}`}>
+    {auction.highest_bidder ? (
+      <>
+        <span className="label">Winner</span>
+        <span className="winner-name">
+          🏆 {auction.highest_bidder}
+        </span>
+        <span className="sub-detail">
+          Winning bid: ${auction.highest_bid}
+        </span>
+      </>
+    ) : (
+      <span className="sub-detail">
+        No bids were placed — auction ended with no winner.
+      </span>
+    )}
+  </div>
