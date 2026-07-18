@@ -46,6 +46,7 @@ function AuctionDetails() {
       setBidStatus({ type: "error", message: "Enter a valid bid amount." });
       return;
     }
+
     setSubmitting(true);
     try {
       const response = await fetch(`http://localhost:5000/api/auctions/${id}/bid`, {
@@ -54,9 +55,10 @@ function AuctionDetails() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(bidAmount),
-          
+          // TODO: replace with the actual logged-in user's id once auth is wired up
         }),
       });
+
       const result = await response.json();
 
       if (!response.ok) {
@@ -74,6 +76,7 @@ function AuctionDetails() {
       setSubmitting(false);
     }
   };
+
   if (loading) {
     return (
       <>
@@ -96,6 +99,7 @@ function AuctionDetails() {
       </>
     );
   }
+
   const currentPrice = auction.current_price || auction.starting_price;
   const hasBids = auction.bid_count > 0;
 
@@ -122,6 +126,7 @@ function AuctionDetails() {
                 ? 'Upcoming'
                 : 'Ended'}
             </span>
+
             <h1>{auction.title}</h1>
             <p className="description">{auction.description}</p>
 
@@ -214,4 +219,28 @@ function AuctionDetails() {
                 <h3>Recent Bids</h3>
                 <ul>
                   {auction.recent_bids.map((bid, idx) => (
-                    <li key={idx}></li>
+                    <li key={idx}>
+  <span className="bidder">
+    {bid.bidder_name}
+  </span>
+
+  <span className="amount">
+    ${bid.bid_amount}
+  </span>
+
+  <span className="time">
+    {new Date(bid.bid_time).toLocaleString()}
+  </span>
+</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AuctionDetails;
