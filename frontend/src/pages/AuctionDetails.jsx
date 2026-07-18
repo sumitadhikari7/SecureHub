@@ -151,3 +151,28 @@ function AuctionDetails() {
       </span>
     )}
   </div>
+            ) : hasBids ? (
+              <div className="result-block leading">
+                <span className="label">Highest Bidder</span>
+                <span className="winner-name">{auction.highest_bidder}</span>
+                <span className="sub-detail">Highest bid: ${auction.highest_bid}</span>
+              </div>
+            ) : (
+              <p className="notice">No bids yet — be the first to bid.</p>
+            )}
+
+            <div className="stats-row">
+              <div>
+                <span className="label">Starting Price</span>
+                <span className="value">${auction.starting_price}</span>
+              </div>
+              <div>
+                <span className="label">Total Bids</span>
+                <span className="value">{auction.bid_count}</span>
+              </div>
+            </div>
+
+            <div className="dates">
+              <p><strong>Starts:</strong> {new Date(auction.start_time).toLocaleString()}</p>
+              <p><strong>Ends:</strong> {new Date(auction.end_time).toLocaleString()}</p>
+            </div>
