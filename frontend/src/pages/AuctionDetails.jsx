@@ -46,3 +46,14 @@ function AuctionDetails() {
       setBidStatus({ type: "error", message: "Enter a valid bid amount." });
       return;
     }
+    setSubmitting(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/auctions/${id}/bid`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Number(bidAmount),
+          // TODO: replace with the actual logged-in user's id once auth is wired up
+        }),
+      });
