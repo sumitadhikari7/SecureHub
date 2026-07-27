@@ -188,3 +188,38 @@
   margin-top: 12px;
   line-height: 1.5;
 }
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 30px;
+}
+ 
+.qr-label {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+ 
+.qr-box {
+  width: 160px;
+  height: 160px;
+  background-color: #eceff1;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+ 
+.qr-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
