@@ -9,6 +9,7 @@ function Navbar() {
     { label: "Browse Auctions", path: "/browse-auction" },
     { label: "Create Auction", path: "/create-auction" },
     { label: "My Bids", path: "/my-bids" },
+    { label: "My Collateral", path: "/my-collateral" },
     { label: "Profile", path: "/profile" },
   ];
 
