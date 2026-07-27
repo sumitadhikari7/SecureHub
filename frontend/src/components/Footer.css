@@ -70,3 +70,15 @@
   color: #64748b;
   font-size: 13px;
 }
+
+@media (max-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    text-align: left;
+  }
+
+  .site-footer {
+    padding: 30px 24px 0;
+  }
+}
