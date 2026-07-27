@@ -76,6 +76,62 @@ return(
                   Submit Another Request
                 </button>
               </div>
-            )
+            )(
+              <div className="load-grid">
+                <form className="load-form" onSubmit={handleSendRequest}>
+                  <label htmlFor="amount">Amount to Load</label>
+                  <input
+                    id="amount"
+                    type="number"
+                    min="1"
+                    placeholder="Enter amount (e.g. 100)"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                  />
+ 
+                  <label htmlFor="transactionId">Transaction ID</label>
+                  <input
+                    id="transactionId"
+                    type="text"
+                    placeholder="Enter transaction ID from your transfer"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                    required
+                  />
+ 
+                  <button type="submit" className="send-request-btn">
+                    Send Request
+                  </button>
+ 
+                  <p className="helper-text">
+                    Once you send the request, an admin will review your
+                    transfer and verify the transaction ID before adding it
+                    to your balance.
+                  </p>
+                </form>
+ 
+                <div className="qr-section">
+                  <p className="qr-label">Scan to Transfer</p>
+                  <div className="qr-box">
+                    <img
+                      src="/assets/payment-qr.png"
+                      alt="Account QR code for payment transfer"
+                    />
+                  </div>
+                  <p className="account-detail">
+                    <strong>Account Name:</strong> Your Business Name
+                  </p>
+                  <p className="account-detail">
+                    <strong>Account No:</strong> XXXX-XXXX-XXXX
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
     </>
 )
