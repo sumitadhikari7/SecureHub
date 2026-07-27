@@ -233,3 +233,37 @@
 .account-detail strong {
   color: #1e293b;
 }
+
+.confirmation {
+  text-align: center;
+  padding: 10px 0;
+}
+ 
+.confirmation h2 {
+  color: #1e293b;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+ 
+.confirmation .sub-label {
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+ 
+.secondary-btn {
+  margin-top: 10px;
+  background-color: white;
+  color: #1e293b;
+  border: 1px solid #d1d5db;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+ 
+.secondary-btn:hover {
+  background-color: #eceff1;
+}
