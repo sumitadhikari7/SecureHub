@@ -23,3 +23,37 @@
   color: #64748b;
   font-size: 15px;
 }
+
+.collateral-tabs {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background-color: white;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+ 
+.collateral-tabs .tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+ 
+.collateral-tabs .tab:hover {
+  background-color: #eceff1;
+}
+ 
+.collateral-tabs .tab.active {
+  background-color: #1e293b;
+  color: white;
+}
