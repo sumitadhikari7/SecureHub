@@ -12,6 +12,16 @@ function MyCollateral() {
   const [amount, setAmount] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [requestSent, setRequestSent] = useState(false);
+
+    const handleSendRequest = (e) => {
+    e.preventDefault();
+    if (!amount || !transactionId) return;
+ 
+    // TODO: replace with real API call to notify admin
+    // e.g. await api.post("/collateral/requests", { amount, transactionId })
+ 
+    setRequestSent(true);
+  };
 };
 return(
     <>
