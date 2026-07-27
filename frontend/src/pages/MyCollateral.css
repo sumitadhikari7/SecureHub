@@ -1,0 +1,9 @@
+.collateral-page {
+  min-height: 100vh;
+  background-color: #eceff1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 30px;
+  font-family: "Segoe UI", sans-serif;
+}
