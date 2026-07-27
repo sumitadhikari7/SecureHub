@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
 import './BrowseAuction.css';
+import Footer from "../components/Footer";
 
 function BrowseAuction() {
   const auctions = [
@@ -114,6 +115,8 @@ function BrowseAuction() {
         </div>
 
         </div>
+
+        <Footer />
     </>
   );
 }

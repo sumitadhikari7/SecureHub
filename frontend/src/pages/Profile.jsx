@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import "./Profile.css";
+import Footer from "../components/Footer";
 
 function Profile() {
   const [profileImage, setProfileImage] = useState(null);
@@ -122,6 +123,7 @@ function Profile() {
         </div>
 
       </div>
+      <Footer />
     </>
   );
 }

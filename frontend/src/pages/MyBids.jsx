@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
 import "./MyBids.css";
+import Footer from "../components/Footer";
 
 function MyBids() {
   const bids = [
@@ -119,7 +120,7 @@ return (
         </div>
 
       </div>
-
+      <Footer />
     </> 
 );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import "./CreateAuction.css";
+import Footer from "../components/Footer";
 
 function CreateAuction() {
   const [formData, setFormData] = useState({
@@ -147,6 +148,7 @@ function CreateAuction() {
           </form>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

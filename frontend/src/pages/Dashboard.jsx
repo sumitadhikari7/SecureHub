@@ -1,5 +1,7 @@
 import "./Dashboard.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+
 function Dashboard() {
   return (
     <>
@@ -61,6 +63,7 @@ function Dashboard() {
       </section>
 
     </div>
+    <Footer />
     </>
   );
 }
