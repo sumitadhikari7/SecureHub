@@ -21,7 +21,6 @@ function MyCollateral() {
     // e.g. await api.post("/collateral/requests", { amount, transactionId })
  
     setRequestSent(true);
-  };
 };
 return(
     <>
@@ -145,6 +144,5 @@ return(
         )}
       </div>
     </>
-  );
-    </>
-)
+    );
+}
