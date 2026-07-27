@@ -223,3 +223,13 @@
   height: 100%;
   object-fit: contain;
 }
+
+.account-detail {
+  color: #64748b;
+  font-size: 13px;
+  margin: 2px 0;
+}
+ 
+.account-detail strong {
+  color: #1e293b;
+}
