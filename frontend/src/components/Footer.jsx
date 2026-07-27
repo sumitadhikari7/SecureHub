@@ -45,11 +45,12 @@ function Footer() {
             </li>
           </ul>
         </div>
-      </div>
+        </div>
             <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} SecureHub. All rights reserved.</p>
-      </div>
-</footer>
+            <p>&copy; {new Date().getFullYear()} SecureHub. All rights reserved.</p>
+        </div>
+        </footer>
     );
 }
+export default Footer;
 
