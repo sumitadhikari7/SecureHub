@@ -54,5 +54,28 @@ return(
             </div>
           </div>
         )}
+                {activeTab === "load" && (
+          <div className="collateral-card load-card">
+            {requestSent ? (
+              <div className="confirmation">
+                <span className="status success">Request Sent</span>
+                <h2>Thanks — we've notified the admin</h2>
+                <p className="sub-label">
+                  Your request for {amount} with transaction ID{" "}
+                  <strong>{transactionId}</strong> is pending review. You'll
+                  be notified once it's approved.
+                </p>
+                <button
+                  className="secondary-btn"
+                  onClick={() => {
+                    setRequestSent(false);
+                    setAmount("");
+                    setTransactionId("");
+                  }}
+                >
+                  Submit Another Request
+                </button>
+              </div>
+            )
     </>
 )
