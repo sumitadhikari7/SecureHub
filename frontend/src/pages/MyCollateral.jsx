@@ -54,7 +54,7 @@ return(
             </div>
           </div>
         )}
-                {activeTab === "load" && (
+        {activeTab === "load" && (
           <div className="collateral-card load-card">
             {requestSent ? (
               <div className="confirmation">
