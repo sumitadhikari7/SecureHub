@@ -32,5 +32,27 @@ return(
             Load Collateral
           </button>
         </div>
+                {activeTab === "view" && (
+          <div className="collateral-card view-card">
+            <span className="status">Account Balance</span>
+            <h2 className="remaining-amount">{account.remaining}</h2>
+            <p className="sub-label">Available Collateral</p>
+ 
+            <div className="stats-row">
+              <div className="stat">
+                <p className="stat-label">Total Collateral</p>
+                <p className="stat-value">{account.totalCollateral}</p>
+              </div>
+              <div className="stat">
+                <p className="stat-label">Used</p>
+                <p className="stat-value">{account.used}</p>
+              </div>
+              <div className="stat">
+                <p className="stat-label">Remaining</p>
+                <p className="stat-value">{account.remaining}</p>
+              </div>
+            </div>
+          </div>
+        )}
     </>
 )
