@@ -9,6 +9,9 @@ function MyCollateral() {
     used: "$450",
     remaining: "$750",
   };
+  const [amount, setAmount] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [requestSent, setRequestSent] = useState(false);
 };
 return(
     <>
