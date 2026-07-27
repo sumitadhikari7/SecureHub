@@ -146,3 +146,5 @@ return(
     </>
     );
 }
+
+export default MyCollateral;
