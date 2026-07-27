@@ -126,21 +126,40 @@ return(
                     to your balance.
                   </p>
                 </form>
- 
-                <div className="qr-section">
-                  <p className="qr-label">Scan to Transfer</p>
-                  <div className="qr-box">
-                    <img
-                      src="/assets/payment-qr.png"
-                      alt="Account QR code for payment transfer"
-                    />
+   
+
+                <div className="qr-group">
+                  <div className="qr-section">
+                    <p className="qr-label">Scan to Transfer</p>
+                    <div className="qr-box">
+                      <img
+                        src="/payment-qr.png.jpg"
+                        alt="Account QR code for payment transfer"
+                      />
+                    </div>
+                    <p className="account-detail">
+                      <strong>Account Name:</strong> SecureHub
+                    </p>
+                    <p className="account-detail">
+                      <strong>Account No:</strong> 0012-3456-7890
+                    </p>
                   </div>
-                  <p className="account-detail">
-                    <strong>Account Name:</strong> SecureHub
-                  </p>
-                  <p className="account-detail">
-                    <strong>Account No:</strong> 0012-3456-7890
-                  </p>
+
+                  <div className="qr-section">
+                    <p className="qr-label">Alternate Transfer Method</p>
+                    <div className="qr-box">
+                      <img
+                        src="/payment-qr-2.png.jpg"
+                        alt="Alternate account QR code for payment transfer"
+                      />
+                    </div>
+                    <p className="account-detail">
+                      <strong>Account Name:</strong> SecureHub
+                    </p>
+                    <p className="account-detail">
+                      <strong>Account No:</strong> 9988-7766-5544
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
