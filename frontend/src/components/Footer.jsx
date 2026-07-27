@@ -12,6 +12,17 @@ function Footer() {
         </div>
 
         <div className="footer-col">
+          <h4>Our Pages</h4>
+          <ul>
+            <li><a href="/browse-auction">Browse Auctions</a></li>
+            <li><a href="/create-auction">Create Auctions</a></li>
+            <li><a href="/my-bids">My Bids</a></li>
+            <li><a href="/my-collateral">My Collateral</a></li>
+            <li><a href="/profile">Profile</a></li>
+          </ul>
+        </div>
+
+        <div className="footer-col">
           <h4>Contact Us</h4>
           <ul className="contact-list">
             <li>
@@ -21,7 +32,7 @@ function Footer() {
                   fill="currentColor"
                 />
               </svg>
-              <span>+(977) 9863026761</span>
+              <span>+(977) 9863026761</span> 
               <span>+(977) 9818385754</span>
             </li>
             <li>
@@ -45,6 +56,7 @@ function Footer() {
             </li>
           </ul>
         </div>
+
         </div>
             <div className="footer-bottom">
             <p>&copy; {new Date().getFullYear()} SecureHub. All rights reserved.</p>
