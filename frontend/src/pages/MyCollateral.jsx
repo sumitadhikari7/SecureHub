@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import './MyCollateral.css'
 
 function MyCollateral() {
   const [activeTab, setActiveTab] = useState("view");
