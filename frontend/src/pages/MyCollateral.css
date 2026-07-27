@@ -57,3 +57,29 @@
   background-color: #1e293b;
   color: white;
 }
+
+.collateral-card {
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  border-top: 5px solid #1e293b;
+}
+ 
+.status {
+  display: inline-block;
+  background-color: #eceff1;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+ 
+.status.success {
+  background-color: #dcfce7;
+  color: #166534;
+}
