@@ -8,9 +8,9 @@ function MyCollateral() {
  
   //wire this up to backend
   const account = {
-    totalCollateral: "$1,200",
-    used: "$450",
-    remaining: "$750",
+    totalCollateral: "Rs. 1,200",
+    used: "Rs. 450",
+    remaining: "Rs. 750",
   };
   const [amount, setAmount] = useState("");
   const [transactionId, setTransactionId] = useState("");
@@ -133,15 +133,15 @@ return(
                     <p className="qr-label">Scan to Transfer</p>
                     <div className="qr-box">
                       <img
-                        src="/payment-qr.png.jpg"
+                        src="/prarabdha.jpg"
                         alt="Account QR code for payment transfer"
                       />
                     </div>
                     <p className="account-detail">
-                      <strong>Account Name:</strong> SecureHub
+                      <strong>Account Name:</strong> Prarabdha Wagle
                     </p>
                     <p className="account-detail">
-                      <strong>Account No:</strong> 0012-3456-7890
+                      <strong>Account No:</strong> 9863026761
                     </p>
                   </div>
 
@@ -149,15 +149,15 @@ return(
                     <p className="qr-label">Alternate Transfer Method</p>
                     <div className="qr-box">
                       <img
-                        src="/payment-qr.png.jpg"
+                        src="/sumit.jpg"
                         alt="Alternate account QR code for payment transfer"
                       />
                     </div>
                     <p className="account-detail">
-                      <strong>Account Name:</strong> SecureHub
+                      <strong>Account Name:</strong> Sumit Adhikari
                     </p>
                     <p className="account-detail">
-                      <strong>Account No:</strong> 9988-7766-5544
+                      <strong>Account No:</strong> 9818385754
                     </p>
                   </div>
                 </div>
