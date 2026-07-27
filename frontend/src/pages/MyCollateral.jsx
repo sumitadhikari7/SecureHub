@@ -135,10 +135,10 @@ return(
                     />
                   </div>
                   <p className="account-detail">
-                    <strong>Account Name:</strong> Your Business Name
+                    <strong>Account Name:</strong> SecureHub
                   </p>
                   <p className="account-detail">
-                    <strong>Account No:</strong> XXXX-XXXX-XXXX
+                    <strong>Account No:</strong> 0012-3456-7890
                   </p>
                 </div>
               </div>
