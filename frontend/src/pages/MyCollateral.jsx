@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Navbar from "../components/Navbar";
 
 function MyCollateral() {
   const [activeTab, setActiveTab] = useState("view");
@@ -24,6 +25,7 @@ function MyCollateral() {
 };
 return(
     <>
+        <Navbar />
         <div className="collateral-page">
         <div className="collateral-header">
           <h1>My Collateral</h1>
