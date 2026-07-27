@@ -12,13 +12,13 @@
   text-align: center;
   margin-bottom: 25px;
 }
- 
+
 .collateral-header h1 {
   color: #1e293b;
   font-size: 34px;
   margin-bottom: 8px;
 }
- 
+
 .collateral-header p {
   color: #64748b;
   font-size: 15px;
@@ -26,7 +26,7 @@
 
 .collateral-tabs {
   width: 100%;
-  max-width: 700px;
+  max-width: 950px;
   display: flex;
   gap: 10px;
   margin-bottom: 30px;
@@ -35,10 +35,10 @@
   border-radius: 8px;
   border: 1px solid #d1d5db;
 }
- 
+
 .collateral-tabs .tab {
   flex: 1;
-  padding: 12px;
+  padding: 14px;
   border: none;
   background: transparent;
   color: #64748b;
@@ -48,11 +48,11 @@
   cursor: pointer;
   transition: 0.2s;
 }
- 
+
 .collateral-tabs .tab:hover {
   background-color: #eceff1;
 }
- 
+
 .collateral-tabs .tab.active {
   background-color: #1e293b;
   color: white;
@@ -60,14 +60,14 @@
 
 .collateral-card {
   width: 100%;
-  max-width: 700px;
+  max-width: 950px;
   background: white;
-  padding: 30px;
+  padding: 36px;
   border-radius: 12px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
   border-top: 5px solid #1e293b;
 }
- 
+
 .status {
   display: inline-block;
   background-color: #eceff1;
@@ -78,7 +78,7 @@
   border-radius: 20px;
   margin-bottom: 12px;
 }
- 
+
 .status.success {
   background-color: #dcfce7;
   color: #166534;
@@ -87,19 +87,19 @@
 .view-card {
   text-align: center;
 }
- 
+
 .remaining-amount {
   color: #1e293b;
-  font-size: 42px;
+  font-size: 46px;
   margin-bottom: 4px;
 }
- 
+
 .sub-label {
   color: #64748b;
   font-size: 14px;
   margin-bottom: 24px;
 }
- 
+
 .stats-row {
   display: flex;
   justify-content: space-between;
@@ -107,34 +107,35 @@
   border-top: 1px solid #e5e7eb;
   padding-top: 20px;
 }
- 
+
 .stat {
   flex: 1;
 }
- 
+
 .stat-label {
   color: #94a3b8;
   font-size: 13px;
   margin-bottom: 4px;
 }
- 
+
 .stat-value {
   color: #1e293b;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
 }
 
 .load-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr 1.4fr;
   gap: 30px;
+  align-items: start;
 }
- 
+
 .load-form {
   display: flex;
   flex-direction: column;
 }
- 
+
 .load-form label {
   color: #1e293b;
   font-size: 14px;
@@ -142,11 +143,11 @@
   margin-bottom: 6px;
   margin-top: 14px;
 }
- 
+
 .load-form label:first-child {
   margin-top: 0;
 }
- 
+
 .load-form input {
   padding: 14px;
   border: 1px solid #d1d5db;
@@ -158,13 +159,13 @@
   box-sizing: border-box;
   transition: 0.2s;
 }
- 
+
 .load-form input:focus {
   outline: none;
   border-color: #1e293b;
   box-shadow: 0px 0px 4px rgba(30, 41, 59, 0.2);
 }
- 
+
 .send-request-btn {
   margin-top: 22px;
   background-color: #1e293b;
@@ -177,11 +178,11 @@
   cursor: pointer;
   transition: 0.2s;
 }
- 
+
 .send-request-btn:hover {
   background-color: #334155;
 }
- 
+
 .helper-text {
   color: #94a3b8;
   font-size: 12.5px;
@@ -191,13 +192,18 @@
 
 .qr-group {
   display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 20px;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 30px;
 }
 
 .qr-group .qr-section {
   flex: 1;
-  min-width: 180px;
+  min-width: 0;
+  border-left: none;
+  padding-left: 0;
 }
 
 .qr-section {
@@ -205,34 +211,37 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-left: 1px solid #e5e7eb;
-  padding-left: 30px;
 }
- 
+
 .qr-label {
   color: #1e293b;
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 12px;
 }
- 
+
 .qr-box {
-  width: 160px;
-  height: 160px;
+  width: 100%;
+  max-width: 170px;
+  aspect-ratio: 1 / 1;
+  height: auto;
   background-color: #eceff1;
   border: 1px solid #d1d5db;
   border-radius: 8px;
+  box-sizing: border-box;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   margin-bottom: 14px;
 }
- 
+
 .qr-box img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
 }
 
 .account-detail {
@@ -240,7 +249,7 @@
   font-size: 13px;
   margin: 2px 0;
 }
- 
+
 .account-detail strong {
   color: #1e293b;
 }
@@ -249,19 +258,19 @@
   text-align: center;
   padding: 10px 0;
 }
- 
+
 .confirmation h2 {
   color: #1e293b;
   font-size: 24px;
   margin-bottom: 10px;
 }
- 
+
 .confirmation .sub-label {
   max-width: 480px;
   margin-left: auto;
   margin-right: auto;
 }
- 
+
 .secondary-btn {
   margin-top: 10px;
   background-color: white;
@@ -274,29 +283,30 @@
   cursor: pointer;
   transition: 0.2s;
 }
- 
+
 .secondary-btn:hover {
   background-color: #eceff1;
 }
 
 @media (max-width: 768px) {
+  .collateral-tabs,
+  .collateral-card {
+    max-width: 700px;
+  }
+
   .load-grid {
     grid-template-columns: 1fr;
   }
- 
-  .qr-section {
+
+  .qr-group {
     border-left: none;
     border-top: 1px solid #e5e7eb;
     padding-left: 0;
     padding-top: 20px;
-  }
- 
-  .stats-row {
     flex-direction: column;
-    gap: 12px;
   }
- 
-  .collateral-tabs {
-    flex-direction: column;
+
+  .qr-box {
+    max-width: 160px;
   }
 }

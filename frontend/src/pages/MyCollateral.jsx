@@ -149,7 +149,7 @@ return(
                     <p className="qr-label">Alternate Transfer Method</p>
                     <div className="qr-box">
                       <img
-                        src="/payment-qr-2.png.jpg"
+                        src="/payment-qr.png.jpg"
                         alt="Alternate account QR code for payment transfer"
                       />
                     </div>
