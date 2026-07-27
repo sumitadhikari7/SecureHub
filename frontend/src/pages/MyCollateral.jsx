@@ -32,7 +32,7 @@ return(
             Load Collateral
           </button>
         </div>
-                {activeTab === "view" && (
+        {activeTab === "view" && (
           <div className="collateral-card view-card">
             <span className="status">Account Balance</span>
             <h2 className="remaining-amount">{account.remaining}</h2>
@@ -76,7 +76,7 @@ return(
                   Submit Another Request
                 </button>
               </div>
-            )(
+            ):(
               <div className="load-grid">
                 <form className="load-form" onSubmit={handleSendRequest}>
                   <label htmlFor="amount">Amount to Load</label>
