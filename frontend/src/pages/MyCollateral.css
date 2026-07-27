@@ -267,3 +267,25 @@
 .secondary-btn:hover {
   background-color: #eceff1;
 }
+
+@media (max-width: 768px) {
+  .load-grid {
+    grid-template-columns: 1fr;
+  }
+ 
+  .qr-section {
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+    padding-left: 0;
+    padding-top: 20px;
+  }
+ 
+  .stats-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+ 
+  .collateral-tabs {
+    flex-direction: column;
+  }
+}
