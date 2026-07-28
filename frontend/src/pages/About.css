@@ -86,3 +86,83 @@
   font-size: 14px;
   line-height: 1.6;
 }
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  text-align: left;
+}
+
+.trust-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.trust-badge {
+  background-color: #1e293b;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trust-card h4 {
+  color: #1e293b;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.trust-card p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.about-cta {
+  width: 100%;
+  max-width: 900px;
+  background-color: #1e293b;
+  color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.about-cta h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.about-cta p {
+  color: #cbd5e1;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+.about-cta button {
+  background-color: white;
+  color: #1e293b;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.about-cta button:hover {
+  background-color: #eceff1;
+}
