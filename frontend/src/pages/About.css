@@ -166,3 +166,20 @@
 .about-cta button:hover {
   background-color: #eceff1;
 }
+
+@media (max-width: 992px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-grid,
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-header h1 {
+    font-size: 28px;
+  }
+}
