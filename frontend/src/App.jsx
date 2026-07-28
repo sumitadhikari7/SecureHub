@@ -6,6 +6,7 @@ import BrowseAuction from "./pages/BrowseAuction";
 import Profile from "./pages/Profile";
 import MyBids from "./pages/MyBids";
 import MyCollateral from "./pages/MyCollateral";
+import About from "./pages/About";
 function App() {
   return (
     <Routes>
@@ -17,6 +18,7 @@ function App() {
       <Route path="/profile" element={<Profile />}/>
       <Route path="/my-bids" element={<MyBids />}/>
       <Route path="/my-collateral" element={<MyCollateral />}/>
+      <Route path="/about" element={<About />}/>
     </Routes>
   );
 }
