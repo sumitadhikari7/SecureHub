@@ -1,3 +1,6 @@
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+
 function About() {
   const features = [
     {
@@ -44,6 +47,7 @@ function About() {
   ];
     return (
     <>
+      <Navbar />  
       <div className="about-page">
 
         <div className="about-header">
@@ -101,6 +105,7 @@ function About() {
         </div>
 
       </div>
+      <Footer />
     </>
   );
 
