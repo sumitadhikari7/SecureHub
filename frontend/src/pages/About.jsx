@@ -42,6 +42,66 @@ function About() {
       desc: "Dispute resolution and refund support if a listing isn't what it claims to be."
     }
   ];
+    return (
+    <>
+      <div className="about-page">
 
+        <div className="about-header">
+          <h1>About SecureHub</h1>
+          <p>
+            Founded in 2026, SecureHub was built on one idea: online bidding
+            should be fast, transparent, and safe by default.
+          </p>
+        </div>
+
+        <div className="about-mission">
+          <h2>Our Mission</h2>
+          <p>
+            SecureHub exists to make buying and selling online feel as safe
+            as walking into a trusted store. We combine real-time technology
+            with serious security infrastructure so every bid you place, and
+            every item you list, is protected from start to finish.
+          </p>
+        </div>
+
+        <div className="feature-grid">
+          {features.map((item) => (
+            <div className="feature-card" key={item.id}>
+              <div className="feature-icon">{item.icon}</div>
+              <h3>{item.title}</h3>
+              <p>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="security-section">
+          <h2>Security You Can Trust</h2>
+          <p className="security-intro">
+            The name says it all. Security isn't a feature we added on top —
+            it's the foundation SecureHub is built on.
+          </p>
+
+          <div className="trust-grid">
+            {trustPoints.map((point) => (
+              <div className="trust-card" key={point.id}>
+                <span className="trust-badge">✓</span>
+                <div>
+                  <h4>{point.title}</h4>
+                  <p>{point.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="about-cta">
+          <h2>Ready to Buy or Sell Securely?</h2>
+          <p>Join thousands of verified users bidding on SecureHub today.</p>
+          <button>Get Started</button>
+        </div>
+
+      </div>
+    </>
+  );
 
 }
