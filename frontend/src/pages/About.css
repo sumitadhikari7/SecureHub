@@ -25,3 +25,29 @@
   font-size: 15px;
   line-height: 1.6;
 }
+
+.about-mission {
+  width: 100%;
+  max-width: 900px;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+  border-top: 5px solid #1e293b;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.about-mission h2 {
+  color: #1e293b;
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.about-mission p {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto;
+}
