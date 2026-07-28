@@ -87,6 +87,25 @@
   line-height: 1.6;
 }
 
+.security-section {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.security-section h2 {
+  color: #1e293b;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.security-intro {
+  color: #64748b;
+  font-size: 15px;
+  margin-bottom: 25px;
+}
+
 .trust-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

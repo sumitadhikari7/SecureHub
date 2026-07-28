@@ -102,7 +102,7 @@ function About() {
         <div className="about-cta">
           <h2>Ready to Buy or Sell Securely?</h2>
           <p>Join thousands of verified users bidding on SecureHub today.</p>
-          <button>Get Started</button>
+          <a href="/dashboard"><button>Get Started</button></a>
         </div>
 
       </div>
