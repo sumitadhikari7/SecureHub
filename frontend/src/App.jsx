@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import MyBids from "./pages/MyBids";
 import MyCollateral from "./pages/MyCollateral";
 import About from "./pages/About";
+import AdminAuthentication from "./pages/AdminAuthentiction";
 function App() {
   return (
     <Routes>
@@ -19,6 +20,7 @@ function App() {
       <Route path="/my-bids" element={<MyBids />}/>
       <Route path="/my-collateral" element={<MyCollateral />}/>
       <Route path="/about" element={<About />}/>
+      <Route path="/admin-authentication" element={<AdminAuthentication />}/>
     </Routes>
   );
 }
