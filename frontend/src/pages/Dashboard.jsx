@@ -6,7 +6,7 @@ import Navbar from "../components/Navbar";
 // Now handles BOTH upcoming countdowns and live ending clocks cleanly!
 function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
   const calculateTimeLeft = () => {
-    if (!endTime) return { text: "No Time Set 🛑", phase: "ended" };
+    if (!endTime) return { text: "No Time Set", phase: "ended" };
 
     try {
       let formattedStartTime = startTime;
@@ -27,11 +27,11 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
 
       // 🏃‍♂️ Phase 2: In progress (Live)
       const difference = end - now;
-      if (difference <= 0) return { text: "Auction Ended 🛑", phase: "ended" };
+      if (difference <= 0) return { text: "Auction Ended", phase: "ended" };
 
       return { text: formatMs(difference), phase: "live" };
     } catch (err) {
-      return { text: "Format Error ❌", phase: "ended" };
+      return { text: "Format Error", phase: "ended" };
     }
   };
 
@@ -54,7 +54,7 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
       const value = calculateTimeLeft();
       setState(value);
 
-      if (value.text === "Auction Ended 🛑" && onEnded) {
+      if (value.text === "Auction Ended" && onEnded) {
         onEnded();
       }
       if (value.phase === "live" && onStarted) {
@@ -68,12 +68,12 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startTime, endTime]);
 
-  const isEnded = state.text === "Auction Ended 🛑" || state.text === "No Time Set 🛑";
+  const isEnded = state.text === "Auction Ended" || state.text === "No Time Set";
   const isUpcoming = state.phase === "upcoming";
 
   return (
     <div className={`timer-badge ${isEnded ? "ended" : isUpcoming ? "upcoming" : "live"}`}>
-      {state.text === "Auction Ended 🛑"
+      {state.text === "Auction Ended"
         ? "⚠️ Ended"
         : isUpcoming
           ? `⏳ Starts In: ${state.text}`
@@ -93,7 +93,12 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/dashboard");
+      const response = await fetch(
+        "http://localhost:5000/api/dashboard",
+      {
+        credentials: "include",
+      }
+);
       const data = await response.json();
 
       setStats(data.stats);
@@ -207,16 +212,19 @@ function Dashboard() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/bids`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          auction_id: id,
-          bid_amount: finalBid,
-        }),
-      });
+      const response = await fetch(
+  `http://localhost:5000/api/auctions/${id}/bid`,
+  {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: finalBid,
+    }),
+  }
+);
 
       const responseText = await response.text();
       let data;
@@ -228,8 +236,12 @@ function Dashboard() {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to save bid data to database");
-      }
+  throw new Error(
+    data.error ||
+    data.message ||
+    "Failed to save bid data to database"
+  );
+}
 
       alert(`🎉 Bid of $${finalBid} successfully placed on "${title}"!`);
       await fetchDashboardData();
@@ -331,10 +343,52 @@ function Dashboard() {
       </>
     );
   };
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") setSelectedAuctionId(null);
+  };
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, []);
 
-  if (loading) {
-    return <div className="loading" style={{ textAlign: "center", marginTop: "50px" }}>Loading SecureHub Dashboard...</div>;
-  }
+// 👇 ADD HERE
+
+const now = new Date();
+
+const activeAuctions = featuredAuctions.filter((auction) => {
+  const start = new Date(auction.start_time);
+  const end = new Date(auction.end_time);
+
+  return start <= now && end > now;
+});
+
+const upcomingAuctionsList = featuredAuctions.filter((auction) => {
+  const start = new Date(auction.start_time);
+
+  const minutesUntilStart =
+    (start.getTime() - now.getTime()) / (1000 * 60);
+
+  return minutesUntilStart > 0 && minutesUntilStart <= 30;
+});
+
+const recentlyEndedAuctions = featuredAuctions.filter((auction) => {
+  const end = new Date(auction.end_time);
+
+  const minutesSinceEnd =
+    (now.getTime() - end.getTime()) / (1000 * 60);
+
+  return minutesSinceEnd >= 0 && minutesSinceEnd <= 30;
+});
+
+// 👆 ADD HERE
+
+if (loading) {
+  return (
+    <div className="loading">
+      Loading SecureHub Dashboard...
+    </div>
+  );
+}
 
   const selectedAuction = featuredAuctions.find((a) => a.auction_id === selectedAuctionId) || null;
   const selectedHasEnded = selectedAuction ? endedAuctions.has(selectedAuction.auction_id) : false;
@@ -366,28 +420,59 @@ function Dashboard() {
         </section>
 
         <section className="featured">
-          <h2>Featured Auctions</h2>
-          <div className="auction-container">
-            {featuredAuctions.length === 0 ? (
-              <p>No active auctions available right now.</p>
-            ) : (
-              featuredAuctions.map((auction) => {
-                const hasEnded = endedAuctions.has(auction.auction_id);
-                const isUpcoming = upcomingAuctions.has(auction.auction_id);
 
-                return (
-                  <div
-                    className={`auction-card ${hasEnded ? "ended" : isUpcoming ? "upcoming" : ""}`}
-                    key={auction.auction_id}
-                    onClick={() => setSelectedAuctionId(auction.auction_id)}
-                  >
-                    {renderAuctionBody(auction)}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </section>
+  <h2>🔥 Active Auctions</h2>
+  <div className="auction-container">
+    {activeAuctions.length > 0 ? (
+      activeAuctions.map((auction) => (
+        <div
+          key={auction.auction_id}
+          className="auction-card"
+          onClick={() => setSelectedAuctionId(auction.auction_id)}
+        >
+          {renderAuctionBody(auction)}
+        </div>
+      ))
+    ) : (
+      <p>No active auctions.</p>
+    )}
+  </div>
+
+  <h2>⏳ Starting Soon (30 Minutes)</h2>
+  <div className="auction-container">
+    {upcomingAuctionsList.length > 0 ? (
+      upcomingAuctionsList.map((auction) => (
+        <div
+          key={auction.auction_id}
+          className="auction-card upcoming"
+          onClick={() => setSelectedAuctionId(auction.auction_id)}
+        >
+          {renderAuctionBody(auction)}
+        </div>
+      ))
+    ) : (
+      <p>No upcoming auctions.</p>
+    )}
+  </div>
+
+  <h2>📁 Recently Ended</h2>
+  <div className="auction-container">
+    {recentlyEndedAuctions.length > 0 ? (
+      recentlyEndedAuctions.map((auction) => (
+        <div
+          key={auction.auction_id}
+          className="auction-card ended"
+          onClick={() => setSelectedAuctionId(auction.auction_id)}
+        >
+          {renderAuctionBody(auction)}
+        </div>
+      ))
+    ) : (
+      <p>No recently ended auctions.</p>
+    )}
+  </div>
+
+</section>
       </div>
 
       {/* 🔍 Expanded view — click any card to see everything, including the full description */}
