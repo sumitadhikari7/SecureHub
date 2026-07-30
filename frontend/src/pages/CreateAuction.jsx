@@ -94,3 +94,61 @@ function CreateAuction() {
       setErrorMsg(err.message);
     }
   };
+  return (
+    <>
+      <Navbar /> {/* Rendered outside to keep it full-width */}
+      
+      <div className="create-auction">
+        <div className="create-auction-hero">
+          <h1>Create Auction</h1>
+          <p>List an item and let the bidding begin</p>
+        </div>
+
+        <div className="create-auction-form-section">
+          {errorMsg && <div className="auth-alert error" style={{color: '#b91c1c', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', padding: '12px', borderRadius: '6px', textAlign:'center', marginBottom: '15px'}}>{errorMsg}</div>}
+          {successMsg && <div className="auth-alert success" style={{color: '#15803d', backgroundColor: '#dcfce7', border: '1px solid #86efac', padding: '12px', borderRadius: '6px', textAlign:'center', marginBottom: '15px'}}>{successMsg}</div>}
+
+          <form className="create-auction-form" onSubmit={handleSubmit}>
+            <label htmlFor="title">Title</label>
+            <input id="title" name="title" type="text" placeholder="e.g. Vintage Rolex Watch" value={formData.title} onChange={handleChange} required />
+
+            <label htmlFor="image">Item Image</label>
+            <div className="image-upload">
+              <input id="image" name="image" type="file" accept="image/*" onChange={handleImageChange} />
+              {imagePreview && <img src={imagePreview} alt="Preview" className="image-preview" style={{maxWidth: '200px', borderRadius: '8px', display: 'block', marginTop: '10px'}} />}
+            </div>
+
+            <label htmlFor="description">Description</label>
+            <textarea id="description" name="description" placeholder="Describe the item details..." value={formData.description} onChange={handleChange} rows={4} required />
+
+            <div className="form-group">
+              <div className="form-field">
+                <label htmlFor="startingPrice">Starting Price ($)</label>
+                <input id="startingPrice" name="startingPrice" type="number" min="0" step="0.01" placeholder="0.00" value={formData.startingPrice} onChange={handleChange} required />
+              </div>
+            </div>
+
+            <div className="form-group" style={{marginTop: '15px'}}>
+              <div className="form-field">
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <label htmlFor="startTime">Start Time</label>
+                  <button type="button" onClick={handleStartNow} style={{fontSize: '11px', padding: '2px 8px', cursor: 'pointer', background: '#e2e8f0', border: '1px solid #cbd5e1', borderRadius: '4px', marginBottom: '4px'}}>⚡ Start Now</button>
+                </div>
+                <input id="startTime" name="startTime" type="datetime-local" value={formData.startTime} onChange={handleChange} required />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="endTime">End Time</label>
+                <input id="endTime" name="endTime" type="datetime-local" value={formData.endTime} onChange={handleChange} required />
+              </div>
+            </div>
+
+            <button type="submit" className="submit-btn" style={{marginTop: '20px'}}>Create Auction</button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default CreateAuction;
