@@ -1,0 +1,20 @@
+import { useState } from "react";
+
+function AdminAuthentication() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (!email || !password) {
+        setError("Please enter both email and password.");
+        return;
+        }
+
+        setError("");
+        console.log("Admin login attempt:", { email, password });
+    };
+}
+
