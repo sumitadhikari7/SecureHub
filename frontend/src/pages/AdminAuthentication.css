@@ -38,3 +38,32 @@
   color: #94a3b8;
   font-size: 13px;
 }
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-login-form label {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.admin-login-form input {
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: 0.2s;
+}
+
+.admin-login-form input::placeholder {
+  color: #64748b;
+}
