@@ -33,10 +33,11 @@ function Authentication() {
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email: formData.email, 
-          password: formData.password // 🚀 FIXED: Password is now packed and sent!
+          password: formData.password 
         }),
       });
 
@@ -44,7 +45,7 @@ function Authentication() {
 
       if (response.ok) {
         alert(data.message || "OTP sent successfully! Check your email. 📩");
-        setStep(2); // Move user to OTP verification input stage
+        setStep(2); 
       } else {
         alert(data.message || "Invalid email or password.");
       }
@@ -62,6 +63,7 @@ function Authentication() {
     try {
       const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
@@ -72,12 +74,35 @@ function Authentication() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Access Granted! Welcome to SecureHub. 🔓");
-        localStorage.setItem('token', data.token); 
-        navigate('/dashboard'); // Kick user into the secure dashboard zone
-      } else {
-        alert(data.message || "Invalid OTP code entered.");
-      }
+  alert("Access Granted! Welcome to SecureHub. 🔓");
+
+  console.log("Logged in user:", data.user);
+
+  // Save user information
+  localStorage.setItem(
+    "userId",
+    String(data.user.user_id)
+  );
+
+  localStorage.setItem(
+    "userName",
+    data.user.full_name
+  );
+
+  localStorage.setItem(
+    "userEmail",
+    data.user.email
+  );
+
+  console.log(
+    "Saved userId:",
+    localStorage.getItem("userId")
+  );
+
+  navigate("/dashboard");
+} else {
+  alert(data.message || "Invalid OTP code entered.");
+}
     } catch (error) {
       console.error("Login Step 2 Network Error:", error);
       alert("Verification server link down.");
@@ -89,7 +114,7 @@ function Authentication() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match ❌");
+      alert("Passwords do not match ");
       return;
     }
 
@@ -110,11 +135,11 @@ function Authentication() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message || "Registration Successful! 🎉");
+        alert(data.message || "Registration Successful! ");
         setIsLogin(true); // Flip over to login layout state
         setStep(1);
       } else {
-        alert(data.message || "Registration failed ❌");
+        alert(data.message || "Registration failed ");
       }
     } catch (error) {
       console.error("Registration Connection Error:", error);
