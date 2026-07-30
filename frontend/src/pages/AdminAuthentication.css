@@ -67,3 +67,25 @@
 .admin-login-form input::placeholder {
   color: #64748b;
 }
+.admin-login-form input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0px 0px 4px rgba(56, 189, 248, 0.4);
+}
+
+.admin-login-form button {
+  margin-top: 24px;
+  background-color: #38bdf8;
+  color: #0f172a;
+  border: none;
+  padding: 13px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.admin-login-form button:hover {
+  background-color: #0ea5e9;
+}
