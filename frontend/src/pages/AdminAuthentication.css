@@ -109,3 +109,13 @@
   color: #64748b;
   font-size: 12px;
 }
+
+@media (max-width: 480px) {
+  .admin-login-card {
+    padding: 30px 24px;
+  }
+
+  .admin-login-header h1 {
+    font-size: 19px;
+  }
+}
