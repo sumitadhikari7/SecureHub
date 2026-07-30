@@ -1,122 +1,116 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import './BrowseAuction.css';
 
 function BrowseAuction() {
-  const auctions = [
-    {
-      id: 1,
-      title: "Gaming Laptop",
-      price: "$850",
-      status: "Current Bid",
-      start: "10 Jul 2026",
-      end: "15 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 2,
-      title: "iPhone 15 Pro",
-      price: "$700",
-      status: "Starting Price",
-      start: "11 Jul 2026",
-      end: "18 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 3,
-      title: "Canon DSLR Camera",
-      price: "$450",
-      status: "Current Bid",
-      start: "8 Jul 2026",
-      end: "14 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 4,
-      title: "PlayStation 5",
-      price: "$520",
-      status: "Current Bid",
-      start: "9 Jul 2026",
-      end: "16 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 5,
-      title: "Apple Watch",
-      price: "$220",
-      status: "Starting Price",
-      start: "12 Jul 2026",
-      end: "20 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    },
-    {
-      id: 6,
-      title: "Mountain Bike",
-      price: "$390",
-      status: "Current Bid",
-      start: "10 Jul 2026",
-      end: "19 Jul 2026",
-      image: "https://via.placeholder.com/300x200"
-    }
-  ];
+  const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  return(
+  // Fetch the data from your Node.js backend
+  useEffect(() => {
+    const fetchAuctions = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/auctions");
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+        const data = await response.json();
+        console.table(
+  data.map((auction) => ({
+    title: auction.title,
+    start: auction.start_time,
+    end: auction.end_time,
+    status: auction.status
+  }))
+);
+        setAuctions(data);
+      } catch (err) {
+        console.error("Failed to fetch auctions:", err);
+        setError("Couldn't load auctions. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAuctions();
+  }, []);
+
+  const handleViewAuction = (auctionId) => {
+    navigate(`/auction/${auctionId}`);
+  };
+  const sortedAuctions = [...auctions].sort((a, b) => {
+  const now = new Date();
+
+  const aEnded = new Date(a.end_time) <= now;
+  const bEnded = new Date(b.end_time) <= now;
+
+  // Put ended auctions at the bottom
+  if (aEnded && !bEnded) return 1;
+  if (!aEnded && bEnded) return -1;
+
+  // Sort remaining auctions by closest ending time
+  return new Date(a.end_time) - new Date(b.end_time);
+});
+
+  return (
     <>
-        <Navbar />
-        <div className="browse-page">
+      <Navbar />
+      <div className="browse-page">
 
         <div className="browse-header">
-            <h1>Browse Auctions</h1>
-            <p>Discover active auctions and place your bids.</p>
+          <h1>Browse Auctions</h1>
+          <p>Discover active auctions and place your bids.</p>
         </div>
+
         <div className="search-filter">
-
-            <input
-            type="text"
-            placeholder="Search auctions..."
-            />
-
-            <select>
+          <input type="text" placeholder="Search auctions..." />
+          <select>
             <option>All Categories</option>
             <option>Electronics</option>
             <option>Vehicles</option>
-            <option>Fashion</option>
-            <option>Collectibles</option>
-            </select>
-
+          </select>
         </div>
+
         <div className="auction-grid">
-
-            {auctions.map((item) => (
-
-            <div className="auction-card" key={item.id}>
-
-                <img src={item.image} alt={item.title} />
-
+          {loading ? (
+            <p>Loading auctions...</p>
+          ) : error ? (
+            <p className="error-message">{error}</p>
+          ) : auctions.length > 0 ? (
+            sortedAuctions.map((item) => (
+              <div className="auction-card" key={item.auction_id}>
+                <img
+                  src={item.image_url || "https://via.placeholder.com/300x200"}
+                  alt={item.title}
+                />
                 <h3>{item.title}</h3>
-
-                <h2>{item.price}</h2>
-
-                <span className="status">
-                {item.status}
+                <h2>${item.current_price || item.starting_price}</h2>
+                <span className={`status status-${item.status}`}>
+                {item.status === "active" && "LIVE AUCTION"}
+                  {item.status === "upcoming" && "UPCOMING"}
+                  {item.status === "ended" && "ENDED"}
                 </span>
 
                 <div className="dates">
-                <p><strong>Added:</strong> {item.start}</p>
-                <p><strong>Ends:</strong> {item.end}</p>
+                  <p><strong>Starts:</strong> {new Date(item.start_time).toLocaleString()}</p>
+                  <p><strong>Ends:</strong> {new Date(item.end_time).toLocaleString()}</p>
                 </div>
 
-                <button>View Auction</button>
-
-            </div>
-
-            ))}
-
+                <button onClick={() => handleViewAuction(item.auction_id)}>
+                  View Auction
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No auctions found.</p>
+          )}
         </div>
-
-        </div>
+      </div>
     </>
   );
 }
 
 export default BrowseAuction;
-
