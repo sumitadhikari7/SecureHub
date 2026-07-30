@@ -397,6 +397,10 @@
   background-color: #fef08a; /* Soft warning yellow */
   color: #854d0e;
 }
+.auction-card.upcoming::before {
+    content: "UPCOMING AUCTION ⏳";
+    background-color: #f59e0b;
+}
 
 /* ==================== EXPANDED CARD MODAL ==================== */
 .modal-overlay {
