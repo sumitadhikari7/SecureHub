@@ -89,3 +89,23 @@
 .admin-login-form button:hover {
   background-color: #0ea5e9;
 }
+
+.admin-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.admin-login-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.admin-login-footer p {
+  color: #64748b;
+  font-size: 12px;
+}
