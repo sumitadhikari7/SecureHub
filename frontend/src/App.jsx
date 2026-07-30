@@ -20,7 +20,7 @@ function App() {
       <Route path="/my-bids" element={<MyBids />}/>
       <Route path="/my-collateral" element={<MyCollateral />}/>
       <Route path="/about" element={<About />}/>
-      <Route path="/securehubadmin" element={<AdminAuthentication />}/>
+      <Route path="/admin-authentication" element={<AdminAuthentication />}/>
     </Routes>
   );
 }
