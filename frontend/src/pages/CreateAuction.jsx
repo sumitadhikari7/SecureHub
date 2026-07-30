@@ -61,3 +61,36 @@ function CreateAuction() {
       setErrorMsg("Error: The end time must be set after the start time!");
       return;
     }
+    const dataToSend = new FormData();
+    dataToSend.append("title", formData.title);
+    dataToSend.append("description", formData.description);
+    dataToSend.append("startingPrice", formData.startingPrice);
+    dataToSend.append("startTime", formData.startTime);
+    dataToSend.append("endTime", formData.endTime);
+    
+    if (imageFile) {
+      dataToSend.append("image", imageFile);
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auctions", {
+        method: "POST",
+        credentials: "include",
+        body: dataToSend,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to create auction");
+
+      setSuccessMsg("Auction listed successfully!");
+      setFormData({ title: "", description: "", startingPrice: "", startTime: "", endTime: "" });
+      setImageFile(null);
+      setImagePreview(null);
+      
+      const fileInput = document.getElementById("image");
+      if (fileInput) fileInput.value = "";
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err.message);
+    }
+  };
