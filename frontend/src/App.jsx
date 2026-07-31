@@ -10,6 +10,7 @@ import MyBids from "./pages/MyBids";
 import MyCollateral from "./pages/MyCollateral";
 import About from "./pages/About";
 import AdminAuthentication from "./pages/AdminAuthentiction";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -23,6 +24,7 @@ function App() {
       <Route path="/browse-auction" element={<BrowseAuction />} />
       <Route path="/auction/:id" element={<AuctionDetails />} />
       <Route path="/admin-authentication" element={<AdminAuthentication />} />
+      <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
 
       {/* Protected Routes */}
