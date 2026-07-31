@@ -20,17 +20,16 @@ function Navbar() {
   }, []);
 
   const navItems = [
-    { label: "Dashboard", path: "/dashboard", protected: true },
-    { label: "Browse Auctions", path: "/browse-auction", protected: false },
-    { label: "Create Auction", path: "/create-auction", protected: true },
-    { label: "My Bids", path: "/my-bids", protected: true },
-    { label: "My Collateral", path: "/my-collateral", protected: true },
-    { label: "Profile", path: "/profile", protected: true },
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "Browse Auctions", path: "/browse-auction" },
+    { label: "Create Auction", path: "/create-auction" },
+    { label: "My Bids", path: "/my-bids" },
+    { label: "My Collateral", path: "/my-collateral" },
+    // { label: "Profile", path: "/profile" },
   ];
 
   return (
     <nav className="navbar">
-
       <div className="logo">
         <Link to={user ? "/dashboard" : "/"}>
           <h2>SecureHub</h2>
@@ -38,20 +37,18 @@ function Navbar() {
       </div>
 
       <ul className="nav-links">
-        {navItems
-          .filter((item) => !item.protected || user)
-          .map((item) => (
-            <li key={item.path}>
-              <Link
-                to={item.path}
-                className={
-                  location.pathname === item.path ? "active" : ""
-                }
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
+        {navItems.map((item) => (
+          <li key={item.path}>
+            <Link
+              to={item.path}
+              className={
+                location.pathname === item.path ? "active" : ""
+              }
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
 
         <li className="auth-link">
           {user ? (
@@ -75,7 +72,6 @@ function Navbar() {
           )}
         </li>
       </ul>
-
     </nav>
   );
 }

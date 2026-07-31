@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import './AuctionDetails.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function AuctionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,9 +17,48 @@ function AuctionDetails() {
   const [bidStatus, setBidStatus] = useState(null); // { type: 'success' | 'error', message }
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchAuction = async () => {
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchAuction = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auctions/${id}`);
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404 ? "Auction not found" : `Server responded with ${response.status}`
+          );
+        }
+        const data = await response.json();
+        if (!ignore) {
+          setAuction(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch auction:", err);
+        if (!ignore) {
+          setError(err.message);
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAuction();
+
+    return () => {
+      ignore = true;
+    };
+  }, [id]);
+
+  // Re-fetches after a successful bid so highest bid / bidder / history all update together.
+  // Not guarded by `ignore` since it's user-triggered, not tied to the mount/id lifecycle above.
+  const refetchAuction = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/auctions/${id}`);
+      const response = await fetch(`${API_BASE}/api/auctions/${id}`);
       if (!response.ok) {
         throw new Error(
           response.status === 404 ? "Auction not found" : `Server responded with ${response.status}`
@@ -26,20 +67,17 @@ function AuctionDetails() {
       const data = await response.json();
       setAuction(data);
     } catch (err) {
-      console.error("Failed to fetch auction:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error("Failed to refresh auction:", err);
     }
   };
 
-  useEffect(() => {
-    fetchAuction();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
   const handleBidSubmit = async (e) => {
     e.preventDefault();
+
+    if (submitting) {
+      return;
+    }
+
     setBidStatus(null);
 
     if (!bidAmount || isNaN(bidAmount)) {
@@ -47,9 +85,14 @@ function AuctionDetails() {
       return;
     }
 
+    if (Number(bidAmount) <= Number(currentPrice)) {
+      setBidStatus({ type: "error", message: `Bid must be more than $${currentPrice}` });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/auctions/${id}/bid`, {
+      const response = await fetch(`${API_BASE}/api/auctions/${id}/bid`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -66,8 +109,7 @@ function AuctionDetails() {
       } else {
         setBidStatus({ type: "success", message: "Bid placed successfully!" });
         setBidAmount("");
-        // Re-fetch so highest bid / bidder / history all update together
-        fetchAuction();
+        refetchAuction();
       }
     } catch (err) {
       console.error("Failed to place bid:", err);
@@ -139,23 +181,23 @@ function AuctionDetails() {
 
             {/* Winner / highest bidder / bid stats */}
             {auction.status === 'ended' ? (
-  <div className={`result-block ${auction.highest_bidder ? 'won' : 'no-winner'}`}>
-    {auction.highest_bidder ? (
-      <>
-        <span className="label">Winner</span>
-        <span className="winner-name">
-          🏆 {auction.highest_bidder}
-        </span>
-        <span className="sub-detail">
-          Winning bid: ${auction.highest_bid}
-        </span>
-      </>
-    ) : (
-      <span className="sub-detail">
-        No bids were placed — auction ended with no winner.
-      </span>
-    )}
-  </div>
+              <div className={`result-block ${auction.highest_bidder ? 'won' : 'no-winner'}`}>
+                {auction.highest_bidder ? (
+                  <>
+                    <span className="label">Winner</span>
+                    <span className="winner-name">
+                      🏆 {auction.highest_bidder}
+                    </span>
+                    <span className="sub-detail">
+                      Winning bid: ${auction.highest_bid}
+                    </span>
+                  </>
+                ) : (
+                  <span className="sub-detail">
+                    No bids were placed — auction ended with no winner.
+                  </span>
+                )}
+              </div>
             ) : hasBids ? (
               <div className="result-block leading">
                 <span className="label">Highest Bidder</span>
@@ -218,20 +260,20 @@ function AuctionDetails() {
               <div className="bid-history">
                 <h3>Recent Bids</h3>
                 <ul>
-                  {auction.recent_bids.map((bid, idx) => (
-                    <li key={idx}>
-  <span className="bidder">
-    {bid.bidder_name}
-  </span>
+                  {auction.recent_bids.map((bid) => (
+                    <li key={bid.bid_id ?? `${bid.bidder_name}-${bid.bid_time}`}>
+                      <span className="bidder">
+                        {bid.bidder_name}
+                      </span>
 
-  <span className="amount">
-    ${bid.bid_amount}
-  </span>
+                      <span className="amount">
+                        ${bid.bid_amount}
+                      </span>
 
-  <span className="time">
-    {new Date(bid.bid_time).toLocaleString()}
-  </span>
-</li>
+                      <span className="time">
+                        {new Date(bid.bid_time).toLocaleString()}
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>
