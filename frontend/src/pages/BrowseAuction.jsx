@@ -292,11 +292,11 @@ function BrowseAuction() {
 
 
 
-        <Footer />
+      
 
 
       </div>
-
+      <Footer />
 
     </>
 

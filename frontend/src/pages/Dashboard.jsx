@@ -373,6 +373,7 @@ function Dashboard() {
 
               <input
                 type="number"
+                className="bid-number-input"
                 value={inputValue}
                 disabled={isEnded || isUpcoming}
                 onChange={(e) =>
