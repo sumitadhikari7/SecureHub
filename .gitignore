@@ -1,0 +1,9 @@
+.env
+
+node_modules/
+backend/uploads/
+
+.DS_Store
+*.log
+test-db.js
+test-email.js
