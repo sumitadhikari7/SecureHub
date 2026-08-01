@@ -116,6 +116,24 @@
   font-style: italic;
 }
 
+.start-now-btn {
+  align-self: flex-start;
+  background-color: #eef2f7;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: 0.2s;
+}
+
+.start-now-btn:hover {
+  background-color: #e2e8f0;
+}
+
 .submit-btn {
   background-color: #1e293b;
   color: white;
