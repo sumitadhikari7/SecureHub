@@ -663,6 +663,43 @@
   background-color: #dc2626;
 }
 
+@media (max-width: 992px) {
+  .admin-users-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
+  .admin-users-table-wrap {
+    overflow-x: auto;
+  }
+
+  .admin-users-table {
+    min-width: 720px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-users-content {
+    padding: 30px 16px 50px;
+  }
+
+  .admin-users-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-user-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-users-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-users-header-text h1 {
+    font-size: 21px;
+  }
+}
 
 
