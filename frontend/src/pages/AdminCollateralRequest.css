@@ -1,0 +1,197 @@
+.collateral-header-row {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.collateral-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #1e293b;
+  border: 1px solid #263449;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 260px;
+  max-width: 320px;
+}
+
+.collateral-search-icon {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.collateral-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 13px;
+  width: 100%;
+  font-family: inherit;
+}
+
+.collateral-search input::placeholder {
+  color: #64748b;
+}
+
+.collateral-list {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.collateral-card {
+  background-color: #1e293b;
+  border: 1px solid #263449;
+  border-left: 3px solid #38bdf8;
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  transition: 0.2s;
+}
+
+.collateral-card:hover {
+  background-color: #202c45;
+  border-color: #334155;
+}
+
+.collateral-main {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-width: 240px;
+  align-items: center;
+}
+
+.collateral-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #16213a;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.collateral-user-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.collateral-user-email {
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.collateral-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.collateral-amount {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+  background-color: rgba(250, 204, 21, 0.1);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #facc15;
+}
+
+.collateral-date {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.action-btn {
+  background-color: transparent;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.action-btn.manage:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.collateral-empty,
+.collateral-loading,
+.collateral-error {
+  width: 100%;
+  max-width: 1000px;
+  background-color: #1e293b;
+  border: 1px solid #263449;
+  border-radius: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.collateral-error {
+  color: #f87171;
+}
+
+.collateral-count {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .collateral-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

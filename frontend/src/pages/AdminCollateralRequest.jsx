@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import "./AdminFraudUsers.css";
+import "./AdminCollateralRequest.css";
 
-function AdminFraudUsers() {
+const REVIEWED_STORAGE_KEY = "reviewedCollateralRequestIds";
+
+function AdminCollateralRequests() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,36 +25,43 @@ function AdminFraudUsers() {
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
 
-  const [flaggedUsers, setFlaggedUsers] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchFlaggedUsers = async () => {
+    const fetchRequests = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // TODO: replace with real API endpoint, e.g. /api/admin/flagged-accounts
-        const res = await fetch("/api/admin/flagged-accounts", {
+        // TODO: replace with real API endpoint, e.g. /api/admin/collateral-requests
+        const res = await fetch("/api/admin/collateral-requests", {
           credentials: "include"
         });
 
         if (!res.ok) {
-          throw new Error("Failed to load flagged accounts");
+          throw new Error("Failed to load collateral requests");
         }
 
         const data = await res.json();
-        setFlaggedUsers(data.flaggedAccounts || data);
+        const list = data.requests || data;
+
+        // Filter out any requests already handled in this session
+        // (in case the list is refetched after returning from Manage Collateral)
+        const reviewedIds = JSON.parse(
+          sessionStorage.getItem(REVIEWED_STORAGE_KEY) || "[]"
+        );
+        setRequests(list.filter((r) => !reviewedIds.includes(r.id)));
       } catch (err) {
-        setError(err.message || "Something went wrong while loading flagged accounts.");
+        setError(err.message || "Something went wrong while loading collateral requests.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFlaggedUsers();
+    fetchRequests();
   }, []);
 
   const handleLogout = () => {
@@ -61,16 +70,28 @@ function AdminFraudUsers() {
     navigate("/admin/login");
   };
 
-  const handleUnsuspend = async (userId) => {
-    // TODO: call real API, e.g. PATCH /api/admin/users/:id/unsuspend
-    setFlaggedUsers((prev) => prev.filter((u) => u.id !== userId));
+  const handleManage = (request) => {
+    // Remove from the visible list right away
+    setRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+    // Remember it was handled so it stays gone if this list is revisited
+    const reviewedIds = JSON.parse(
+      sessionStorage.getItem(REVIEWED_STORAGE_KEY) || "[]"
+    );
+    sessionStorage.setItem(
+      REVIEWED_STORAGE_KEY,
+      JSON.stringify([...reviewedIds, request.id])
+    );
+
+    // TODO: adjust route/params to match your Manage Collateral page
+    navigate(`/admin/manage-collateral/${request.id}`);
   };
 
-  const filteredUsers = useMemo(() => {
-    return flaggedUsers.filter((u) =>
-      u.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRequests = useMemo(() => {
+    return requests.filter((r) =>
+      r.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [flaggedUsers, searchTerm]);
+  }, [requests, searchTerm]);
 
   const getInitials = (name) =>
     name
@@ -121,13 +142,13 @@ function AdminFraudUsers() {
       <main className="admin-dashboard-content">
 
         <div className="admin-dashboard-header">
-          <h1>Flagged Accounts</h1>
-          <p>Review suspended accounts and restore access when resolved.</p>
+          <h1>Collateral Requests</h1>
+          <p>Review pending collateral submissions from users.</p>
         </div>
 
-        <div className="flagged-header-row">
-          <div className="flagged-search">
-            <span className="flagged-search-icon">🔍</span>
+        <div className="collateral-header-row">
+          <div className="collateral-search">
+            <span className="collateral-search-icon">🔍</span>
             <input
               type="text"
               placeholder="Search by username..."
@@ -138,28 +159,31 @@ function AdminFraudUsers() {
         </div>
 
         {loading ? (
-          <div className="flagged-loading">Loading flagged accounts...</div>
+          <div className="collateral-loading">Loading collateral requests...</div>
         ) : error ? (
-          <div className="flagged-error">{error}</div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="flagged-empty">No flagged accounts found.</div>
+          <div className="collateral-error">{error}</div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="collateral-empty">No collateral requests found.</div>
         ) : (
-          <div className="flagged-list">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="flagged-card">
-                <div className="flagged-main">
-                  <div className="flagged-avatar">
-                    {getInitials(user.name)}
+          <div className="collateral-list">
+            {filteredRequests.map((request) => (
+              <div key={request.id} className="collateral-card">
+                <div className="collateral-main">
+                  <div className="collateral-avatar">
+                    {getInitials(request.name)}
                   </div>
                   <div>
-                    <div className="flagged-user-name">{user.name}</div>
-                    <div className="flagged-user-email">{user.email}</div>
-                    <div className="flagged-meta">
-                      <span className="status-badge">Suspended</span>
-                      <span className="flagged-date">
-                        Since{" "}
-                        {user.suspendedAt
-                          ? new Date(user.suspendedAt).toLocaleDateString()
+                    <div className="collateral-user-name">{request.name}</div>
+                    <div className="collateral-user-email">{request.email}</div>
+                    <div className="collateral-meta">
+                      <span className="status-badge">Pending</span>
+                      <span className="collateral-amount">
+                        {request.amount ? `$${request.amount}` : "—"}
+                      </span>
+                      <span className="collateral-date">
+                        Submitted{" "}
+                        {request.submittedAt
+                          ? new Date(request.submittedAt).toLocaleDateString()
                           : "—"}
                       </span>
                     </div>
@@ -167,10 +191,10 @@ function AdminFraudUsers() {
                 </div>
 
                 <button
-                  className="action-btn unsuspend"
-                  onClick={() => handleUnsuspend(user.id)}
+                  className="action-btn manage"
+                  onClick={() => handleManage(request)}
                 >
-                  Unsuspend
+                  Manage Collateral
                 </button>
               </div>
             ))}
@@ -178,8 +202,8 @@ function AdminFraudUsers() {
         )}
 
         {!loading && !error && (
-          <p className="flagged-count">
-            Showing {filteredUsers.length} of {flaggedUsers.length} flagged accounts
+          <p className="collateral-count">
+            Showing {filteredRequests.length} of {requests.length} collateral requests
           </p>
         )}
 
@@ -189,4 +213,4 @@ function AdminFraudUsers() {
   );
 }
 
-export default AdminFraudUsers;
+export default AdminCollateralRequests;
