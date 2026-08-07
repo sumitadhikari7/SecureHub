@@ -15,7 +15,7 @@ function AdminFraudUsers() {
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin/users" },
+    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
     { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin/fraud-accounts" },
     { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin/collateral-requests" },
     { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin/manage-collateral" }
