@@ -12,6 +12,7 @@ import About from "./pages/About";
 import AdminAuthentication from "./pages/AdminAuthentiction";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminManageUsers from "./pages/AdminManageUsers";
+import AdminFraudUsers from "./pages/AdminFraudUsers";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -27,6 +28,7 @@ function App() {
       <Route path="/admin-authentication" element={<AdminAuthentication />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/admin-manage-users" element={<AdminManageUsers />} />
+      <Route path="/admin-fraud-accounts" element={<AdminFraudUsers />} />
 
 
       {/* Protected Routes */}
