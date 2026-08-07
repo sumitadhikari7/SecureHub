@@ -13,6 +13,7 @@ import AdminAuthentication from "./pages/AdminAuthentiction";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminManageUsers from "./pages/AdminManageUsers";
 import AdminFraudUsers from "./pages/AdminFraudUsers";
+import AdminCollateralRequests from "./pages/AdminCollateralRequest";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -29,6 +30,7 @@ function App() {
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/admin-manage-users" element={<AdminManageUsers />} />
       <Route path="/admin-fraud-accounts" element={<AdminFraudUsers />} />
+      <Route path="/admin-collateral-requests" element={<AdminCollateralRequests />} />
 
 
       {/* Protected Routes */}
