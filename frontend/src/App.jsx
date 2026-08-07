@@ -11,6 +11,7 @@ import MyCollateral from "./pages/MyCollateral";
 import About from "./pages/About";
 import AdminAuthentication from "./pages/AdminAuthentiction";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminManageUsers from "./pages/AdminManageUsers";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -25,6 +26,7 @@ function App() {
       <Route path="/auction/:id" element={<AuctionDetails />} />
       <Route path="/admin-authentication" element={<AdminAuthentication />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/users" element={<AdminManageUsers />} />
 
 
       {/* Protected Routes */}
