@@ -26,7 +26,7 @@ function App() {
       <Route path="/auction/:id" element={<AuctionDetails />} />
       <Route path="/admin-authentication" element={<AdminAuthentication />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/users" element={<AdminManageUsers />} />
+      <Route path="/admin-manage-users" element={<AdminManageUsers />} />
 
 
       {/* Protected Routes */}
