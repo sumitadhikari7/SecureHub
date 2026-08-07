@@ -21,34 +21,10 @@ function AdminDashboard() {
   ];
 
   const dashboardItems = [
-    {
-      id: 1,
-      icon: "👥",
-      title: "Manage Users",
-      desc: "View, suspend, or remove user accounts.",
-      path: "/admin/users"
-    },
-    {
-      id: 2,
-      icon: "🚨",
-      title: "Fraud Accounts",
-      desc: "Review flagged accounts and take action.",
-      path: "/admin/fraud-accounts"
-    },
-    {
-      id: 3,
-      icon: "📋",
-      title: "Collateral Requests",
-      desc: "Review pending collateral submissions.",
-      path: "/admin/collateral-requests"
-    },
-    {
-      id: 4,
-      icon: "🗂️",
-      title: "Manage Collateral",
-      desc: "Approve, release, or hold user collateral.",
-      path: "/admin/manage-collateral"
-    }
+    { id: 1, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
+    { id: 2, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
+    { id: 3, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
+    { id: 4, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
