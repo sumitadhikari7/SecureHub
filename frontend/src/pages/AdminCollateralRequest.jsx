@@ -11,7 +11,7 @@ function AdminCollateralRequests() {
   // TODO: replace with actual logged-in admin data (from auth context/API)
   const admin = {
     name: "Admin",
-    email: "admin@securehub.com",
+    email: "securehub.certified@gmail.com",
     role: "Super Admin"
   };
 
