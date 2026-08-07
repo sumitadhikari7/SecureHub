@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import "./AdminFraudAccounts.css";
+import "./AdminFraudUsers.css";
 
 function AdminFraudUsers() {
   const navigate = useNavigate();
@@ -9,28 +9,26 @@ function AdminFraudUsers() {
   // TODO: replace with actual logged-in admin data (from auth context/API)
   const admin = {
     name: "Admin",
-    email: "securehub.certified@gmai.com",
+    email: "admin@securehub.com",
     role: "Super Admin"
   };
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin/users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin/fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin/collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin/manage-collateral" }
+    { id: 1, icon: "👥", title: "Manage Users", path: "/admin/users" },
+    { id: 2, icon: "🚨", title: "Fraud Accounts", path: "/admin/fraud-accounts" },
+    { id: 3, icon: "📋", title: "Collateral Requests", path: "/admin/collateral-requests" },
+    { id: 4, icon: "🗂️", title: "Manage Collateral", path: "/admin/manage-collateral" }
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
 
-  const [flaggedAccounts, setFlaggedAccounts] = useState([]);
+  const [flaggedUsers, setFlaggedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [severityFilter, setSeverityFilter] = useState("all");
 
   useEffect(() => {
-    const fetchFlaggedAccounts = async () => {
+    const fetchFlaggedUsers = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -45,7 +43,7 @@ function AdminFraudUsers() {
         }
 
         const data = await res.json();
-        setFlaggedAccounts(data.flaggedAccounts || data);
+        setFlaggedUsers(data.flaggedAccounts || data);
       } catch (err) {
         setError(err.message || "Something went wrong while loading flagged accounts.");
       } finally {
@@ -53,7 +51,7 @@ function AdminFraudUsers() {
       }
     };
 
-    fetchFlaggedAccounts();
+    fetchFlaggedUsers();
   }, []);
 
   const handleLogout = () => {
@@ -62,26 +60,16 @@ function AdminFraudUsers() {
     navigate("/admin/login");
   };
 
-  const handleDismiss = async (flagId) => {
-    // TODO: call real API, e.g. PATCH /api/admin/flagged-accounts/:id/dismiss
-    setFlaggedAccounts((prev) => prev.filter((f) => f.id !== flagId));
+  const handleUnsuspend = async (userId) => {
+    // TODO: call real API, e.g. PATCH /api/admin/users/:id/unsuspend
+    setFlaggedUsers((prev) => prev.filter((u) => u.id !== userId));
   };
 
-  const handleSuspend = async (flagId, userId) => {
-    // TODO: call real API, e.g. POST /api/admin/users/:id/suspend
-    setFlaggedAccounts((prev) => prev.filter((f) => f.id !== flagId));
-  };
-
-  const filteredAccounts = useMemo(() => {
-    return flaggedAccounts.filter((f) => {
-      const matchesSearch = f.user?.name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesSeverity =
-        severityFilter === "all" || f.severity === severityFilter;
-      return matchesSearch && matchesSeverity;
-    });
-  }, [flaggedAccounts, searchTerm, severityFilter]);
+  const filteredUsers = useMemo(() => {
+    return flaggedUsers.filter((u) =>
+      u.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [flaggedUsers, searchTerm]);
 
   const getInitials = (name) =>
     name
@@ -133,7 +121,7 @@ function AdminFraudUsers() {
 
         <div className="admin-dashboard-header">
           <h1>Flagged Accounts</h1>
-          <p>Review accounts flagged for suspicious activity and take action.</p>
+          <p>Review suspended accounts and restore access when resolved.</p>
         </div>
 
         <div className="flagged-header-row">
@@ -146,69 +134,43 @@ function AdminFraudUsers() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <div className="flagged-filters">
-            {["all", "low", "medium", "high"].map((sev) => (
-              <button
-                key={sev}
-                className={`filter-btn ${severityFilter === sev ? "active" : ""}`}
-                onClick={() => setSeverityFilter(sev)}
-              >
-                {sev === "all" ? "All" : sev.charAt(0).toUpperCase() + sev.slice(1)}
-              </button>
-            ))}
-          </div>
         </div>
 
         {loading ? (
           <div className="flagged-loading">Loading flagged accounts...</div>
         ) : error ? (
           <div className="flagged-error">{error}</div>
-        ) : filteredAccounts.length === 0 ? (
+        ) : filteredUsers.length === 0 ? (
           <div className="flagged-empty">No flagged accounts found.</div>
         ) : (
           <div className="flagged-list">
-            {filteredAccounts.map((flag) => (
-              <div
-                key={flag.id}
-                className={`flagged-card severity-${flag.severity}`}
-              >
+            {filteredUsers.map((user) => (
+              <div key={user.id} className="flagged-card">
                 <div className="flagged-main">
                   <div className="flagged-avatar">
-                    {getInitials(flag.user?.name)}
+                    {getInitials(user.name)}
                   </div>
                   <div>
-                    <div className="flagged-user-name">{flag.user?.name}</div>
-                    <div className="flagged-user-email">{flag.user?.email}</div>
-                    <p className="flagged-reason">{flag.reason}</p>
+                    <div className="flagged-user-name">{user.name}</div>
+                    <div className="flagged-user-email">{user.email}</div>
                     <div className="flagged-meta">
-                      <span className={`severity-badge severity-${flag.severity}`}>
-                        {flag.severity}
-                      </span>
+                      <span className="status-badge">Suspended</span>
                       <span className="flagged-date">
-                        Flagged{" "}
-                        {flag.flaggedAt
-                          ? new Date(flag.flaggedAt).toLocaleDateString()
+                        Since{" "}
+                        {user.suspendedAt
+                          ? new Date(user.suspendedAt).toLocaleDateString()
                           : "—"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flagged-actions">
-                  <button
-                    className="action-btn suspend"
-                    onClick={() => handleSuspend(flag.id, flag.user?.id)}
-                  >
-                    Suspend User
-                  </button>
-                  <button
-                    className="action-btn dismiss"
-                    onClick={() => handleDismiss(flag.id)}
-                  >
-                    Dismiss Flag
-                  </button>
-                </div>
+                <button
+                  className="action-btn unsuspend"
+                  onClick={() => handleUnsuspend(user.id)}
+                >
+                  Unsuspend
+                </button>
               </div>
             ))}
           </div>
@@ -216,7 +178,7 @@ function AdminFraudUsers() {
 
         {!loading && !error && (
           <p className="flagged-count">
-            Showing {filteredAccounts.length} of {flaggedAccounts.length} flagged accounts
+            Showing {filteredUsers.length} of {flaggedUsers.length} flagged accounts
           </p>
         )}
 
