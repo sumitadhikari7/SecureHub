@@ -8,11 +8,34 @@ function AdminManageCollateral() {
   const { id } = useParams();
 
   // TODO: replace with actual logged-in admin data (from auth context/API)
-  const admin = {
+  // 1. Change admin from a static object to state
+  const [admin, setAdmin] = useState({
     name: "Admin",
     email: "securehub.certified@gmail.com",
     role: "Super Admin"
-  };
+  });
+
+  useEffect(() => {
+    // 2. Fetch real admin info along with your stats check
+    fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setAdmin((prev) => ({
+          ...prev,
+          name: data.name || "Admin",
+          email: data.email || "securehub.certified@gmail.com"
+        }));
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+
+    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
+      // ... rest of your existing stats and collateral fetch logic
+  }, [id, navigate]);
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
@@ -35,40 +58,53 @@ function AdminManageCollateral() {
   const [submitted, setSubmitted] = useState(null); // "approved" | "rejected"
 
   useEffect(() => {
-    const fetchRequest = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // TODO: replace with real API endpoint, e.g. /api/admin/collateral-requests/:id
-        const res = await fetch(`/api/admin/collateral-requests/${id}`, {
-          credentials: "include"
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to load this collateral request.");
+    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then(() => {
+        if (!id) {
+          setLoading(false);
+          return;
         }
 
-        const data = await res.json();
+        return fetch(`http://localhost:5000/api/admin/collateral-requests/${id}`, {
+          credentials: "include"
+        });
+      })
+      .then((res) => {
+        if (!res) return;
+        if (!res.ok) throw new Error("Failed to load this collateral request.");
+        return res.json();
+      })
+      .then((data) => {
+        if (!data) return;
         const found = data.request || data;
         setRequest(found);
-        setNewBalance(
-          found?.currentBalance != null ? String(found.currentBalance) : ""
-        );
-      } catch (err) {
-        setError(err.message || "Something went wrong while loading the request.");
-      } finally {
+        
+        const currentBal = Number(found?.currentBalance ?? found?.current_balance ?? 0);
+        const requestedAmt = Number(found?.amount ?? 0);
+        const calculatedNewBalance = currentBal + requestedAmt;
+
+        setNewBalance(String(calculatedNewBalance));
         setLoading(false);
-      }
-    };
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+  }, [id, navigate]);
 
-    fetchRequest();
-  }, [id]);
-
-  const handleLogout = () => {
-    // TODO: clear admin auth/session here
-    console.log("Admin logged out");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/admin/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    navigate("/admin-authentication");
   };
 
   const getInitials = (name) =>
@@ -96,8 +132,7 @@ function AdminManageCollateral() {
       setSubmitting(true);
       setSubmitError(null);
 
-      // TODO: replace with real API endpoint, e.g. /api/admin/collateral-requests/:id/approve
-      const res = await fetch(`/api/admin/collateral-requests/${id}/approve`, {
+      const res = await fetch(`http://localhost:5000/api/admin/collateral-requests/${id}/approve`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -124,8 +159,7 @@ function AdminManageCollateral() {
       setSubmitting(true);
       setSubmitError(null);
 
-      // TODO: replace with real API endpoint, e.g. /api/admin/collateral-requests/:id/reject
-      const res = await fetch(`/api/admin/collateral-requests/${id}/reject`, {
+      const res = await fetch(`http://localhost:5000/api/admin/collateral-requests/${id}/reject`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -144,10 +178,13 @@ function AdminManageCollateral() {
     }
   };
 
-  const requestedDelta =
-    request?.amount != null && request?.currentBalance != null
-      ? request.currentBalance + Number(request.amount)
-      : null;
+  const currentBalNum = Number(request?.currentBalance ?? request?.current_balance ?? 0);
+  const requestedAmtNum = Number(request?.amount ?? 0);
+  const requestedDelta = request ? currentBalNum + requestedAmtNum : null;
+
+  const transactionIdValue = request?.transactionId ?? request?.transaction_id ?? "—";
+
+  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
     <div className="admin-dashboard-page">
@@ -177,7 +214,7 @@ function AdminManageCollateral() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Logout 🚪
         </button>
       </aside>
 
@@ -191,14 +228,21 @@ function AdminManageCollateral() {
           ← Back to Collateral Requests
         </Link>
 
-        {loading ? (
-          <div className="manage-loading">Loading request...</div>
+        {!id ? (
+          <div className="manage-empty">
+            Pick a request from{" "}
+            <Link to="/admin-collateral-requests">Collateral Requests</Link> to
+            manage it.
+          </div>
         ) : error ? (
           <div className="manage-error">{error}</div>
         ) : !request ? (
           <div className="manage-empty">This request could not be found.</div>
         ) : submitted ? (
           <div className="manage-success">
+            <span className={`stamp ${submitted === "approved" ? "stamp-approved" : "stamp-rejected"}`}>
+              {submitted}
+            </span>
             {submitted === "approved"
               ? `Balance updated for ${request.name}.`
               : `Request from ${request.name} was rejected.`}
@@ -215,7 +259,7 @@ function AdminManageCollateral() {
                   <div className="collateral-user-name">{request.name}</div>
                   <div className="collateral-user-email">{request.email}</div>
                   <div className="collateral-meta">
-                    <span className="status-badge">Pending</span>
+                    <span className="stamp stamp-pending">Pending</span>
                     <span className="collateral-date">
                       Submitted{" "}
                       {request.submittedAt
@@ -229,26 +273,26 @@ function AdminManageCollateral() {
 
             <div className="manage-card">
               <h3 className="manage-card-title">Request Details</h3>
-              <div className="manage-detail-grid">
-                <div className="manage-detail">
-                  <span className="manage-detail-label">Current Balance</span>
-                  <span className="manage-detail-value">
-                    {request.currentBalance != null ? `$${request.currentBalance}` : "—"}
-                  </span>
-                </div>
-                <div className="manage-detail">
-                  <span className="manage-detail-label">Requested Amount</span>
-                  <span className="manage-detail-value">
-                    {request.amount != null ? `$${request.amount}` : "—"}
-                  </span>
-                </div>
-                <div className="manage-detail">
-                  <span className="manage-detail-label">Balance After Approval</span>
-                  <span className="manage-detail-value">
-                    {requestedDelta != null ? `$${requestedDelta}` : "—"}
-                  </span>
-                </div>
-              </div>
+              <table className="detail-table">
+                <tbody>
+                  <tr>
+                    <th scope="row">Current Balance</th>
+                    <td>{`$${currentBalNum.toFixed(2)}`}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Requested Amount</th>
+                    <td>{`$${requestedAmtNum.toFixed(2)}`}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Balance After Approval</th>
+                    <td>{requestedDelta != null ? `$${requestedDelta.toFixed(2)}` : "—"}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Transaction ID</th>
+                    <td><strong>{transactionIdValue}</strong></td>
+                  </tr>
+                </tbody>
+              </table>
               {request.reason && (
                 <div className="manage-reason">
                   <span className="manage-detail-label">User's Note</span>
@@ -297,7 +341,7 @@ function AdminManageCollateral() {
                   className="action-btn approve"
                   disabled={submitting}
                 >
-                  {submitting ? "Saving..." : "Approve & Update Balance"}
+                  {submitting ? "Saving…" : "Approve & Update Balance"}
                 </button>
               </div>
             </form>
