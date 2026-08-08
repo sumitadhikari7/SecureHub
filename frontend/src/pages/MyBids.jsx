@@ -45,6 +45,15 @@ function MyBids() {
     fetchBids();
   }, []);
 
+    useEffect(() => {
+    if (!bids.length) return;
+
+    bids.forEach((b) => socket.emit("joinAuction", b.auction_id));
+
+    return () => {
+      bids.forEach((b) => socket.emit("leaveAuction", b.auction_id));
+    };
+
   const getStatusClass = (status) => {
     switch (status) {
       case "Winning":
