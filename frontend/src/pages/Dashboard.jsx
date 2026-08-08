@@ -3,6 +3,7 @@ import "./Dashboard.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { socket } from "../socket";
+import { Link } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -483,13 +484,12 @@ function Dashboard() {
         <section className="hero">
           <h1>Welcome to SecureHub</h1>
           <p>Secure, transparent and real-time online bidding platform.</p>
-          <button>Browse Auctions</button>
+          <Link to="/browse-auction" className="hero-cta">Browse Auctions</Link>
         </section>
 
         {fetchError && (
           <div className="fetch-error-banner">
-            ⚠️ {fetchError}
-            <button onClick={fetchDashboardData}>Retry</button>
+            ⚠️ {fetchError}! User may not be logged in or session expired. Please log in again.
           </div>
         )}
 
