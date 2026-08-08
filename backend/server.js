@@ -7,10 +7,13 @@ const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+const http = require('http');              // NEW
+const { Server } = require('socket.io');   // NEW
 
 const authRouter = require('./auth');
 
 const app = express();
+const server = http.createServer(app); // NEW — Express and Socket.IO now share this
 
 const pool = new Pool({
   user: process.env.DB_USER,
