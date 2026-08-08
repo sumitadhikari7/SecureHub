@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {socket} from "../socket";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./BrowseAuction.css";
