@@ -136,7 +136,6 @@
 
 /* Orange LIVE banner on top of the card */
 .auction-card::before {
-    content: "LIVE AUCTION 🔨";
     display: block;
     background-color: #d97706;
     color: white;
@@ -153,7 +152,6 @@
 }
 
 .auction-card.ended::before {
-    content: "CLOSED AUCTION 🛑";
     background-color: #64748b;
 }
 
