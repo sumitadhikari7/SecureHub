@@ -58,7 +58,7 @@
   color: white;
 }
 
-.collateral-card {
+.collateral-summary-card {
   width: 100%;
   max-width: 950px;
   background: white;
@@ -290,7 +290,7 @@
 
 @media (max-width: 768px) {
   .collateral-tabs,
-  .collateral-card {
+  .collateral-summary-card {
     max-width: 700px;
   }
 

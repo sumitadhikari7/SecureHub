@@ -49,7 +49,7 @@ return(
           </button>
         </div>
         {activeTab === "view" && (
-          <div className="collateral-card view-card">
+          <div className="collateral-summary-card view-card">
             <span className="status">Account Balance</span>
             <h2 className="remaining-amount">{account.remaining}</h2>
             <p className="sub-label">Available Collateral</p>
@@ -71,7 +71,7 @@ return(
           </div>
         )}
         {activeTab === "load" && (
-          <div className="collateral-card load-card">
+          <div className="collateral-summary-card load-card">
             {requestSent ? (
               <div className="confirmation">
                 <span className="status success">Request Sent</span>
