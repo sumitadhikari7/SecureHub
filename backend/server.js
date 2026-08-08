@@ -7,14 +7,10 @@ const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const http = require('http');              //NEW
-const { Server } = require('socket.io');   //NEW
 
 const authRouter = require('./auth');
 
 const app = express();
-const server = http.createServer(app);  // NEW — Express and Socket.IO now share this
-
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -34,22 +30,22 @@ app.use(
 app.use(express.json());
 
 // Session Middleware
-const sessionMiddleware = session({
-  store: new pgSession({
-    pool: pool,
-    tableName: 'session',
-  }),
-  secret: process.env.SESSION_SECRET || "super-secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: false,
-  },
-});
-
-app.use(sessionMiddleware);
+app.use(
+  session({
+    store: new pgSession({
+      pool: pool,
+      tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET || "super-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: false,
+    },
+  })
+);
 
 // Auth check
 app.get("/api/me", (req, res) => {
@@ -249,6 +245,8 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
       `,
       [id]
     );
+    console.log("Seller:", auctionResult.rows[0].seller_id);
+    console.log("Bidder:", req.session.userId);
 
     if (auctionResult.rows.length === 0) {
       return res.status(404).json({
@@ -257,15 +255,6 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     }
 
     const auction = auctionResult.rows[0];
-    const now = new Date();
-
-    // NEW — server-side time enforcement
-    if (now < new Date(auction.start_time)) {
-      return res.status(400).json({ error: "Auction hasn't started yet." });
-    }
-    if (now > new Date(auction.end_time)) {
-      return res.status(400).json({ error: "Auction has already ended." });
-    }
 
     if (auction.seller_id === req.session.userId) {
       return res.status(403).json({
@@ -300,14 +289,6 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     );
 
     await pool.query('COMMIT');
-
-    // NEW — broadcast to everyone watching this auction
-    const io = req.app.get('io');
-    io.to(`auction:${id}`).emit('bidUpdate', {
-      auction_id: Number(id),
-      current_price: Number(amount),
-      bidder_id: req.session.userId,
-    });
 
     res.json({
       success: true
@@ -534,32 +515,5 @@ app.delete('/api/profile/:userId/photo', async (req, res) => {
 });
 
 
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173",
-    credentials: true,
-  },
-});
 
-io.engine.use(sessionMiddleware); // same login session your REST routes use
-
-io.on('connection', (socket) => {
-  socket.on('joinAuction', (auctionId) => {
-    const userId = socket.request.session?.userId;
-
-    if (!userId) {
-      socket.emit('authError', 'Please log in to follow this auction live.');
-      return;
-    }
-
-    socket.join(`auction:${auctionId}`);
-  });
-
-  socket.on('leaveAuction', (auctionId) => {
-    socket.leave(`auction:${auctionId}`);
-  });
-});
-
-app.set('io', io); // lets route handlers reach io via req.app.get('io')
-
-server.listen(5000, () => console.log("🚀 Server running on port 5000!"));
+app.listen(5000, () => console.log("🚀 Server running on port 5000!"));
