@@ -201,6 +201,16 @@ function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!featuredAuctions.length) return;
+
+    featuredAuctions.forEach((a) => socket.emit("joinAuction", a.auction_id));
+
+    return () => {
+      featuredAuctions.forEach((a) => socket.emit("leaveAuction", a.auction_id));
+    };
+  }, [featuredAuctions]);
+  
   const markAuctionEnded = (id) => {
     setEndedAuctions((prev) => {
       const updated = new Set(prev);
