@@ -517,6 +517,32 @@ app.delete('/api/profile/:userId/photo', async (req, res) => {
   }
 });
 
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
 
+io.engine.use(sessionMiddleware); // same login session your REST routes use
+
+io.on('connection', (socket) => {
+  socket.on('joinAuction', (auctionId) => {
+    const userId = socket.request.session?.userId;
+
+    if (!userId) {
+      socket.emit('authError', 'Please log in to follow this auction live.');
+      return;
+    }
+
+    socket.join(`auction:${auctionId}`);
+  });
+
+  socket.on('leaveAuction', (auctionId) => {
+    socket.leave(`auction:${auctionId}`);
+  });
+});
+
+app.set('io', io); // lets route handlers reach io via req.app.get('io')
 
 app.listen(5000, () => console.log("🚀 Server running on port 5000!"));
