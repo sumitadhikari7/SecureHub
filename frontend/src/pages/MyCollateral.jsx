@@ -8,9 +8,9 @@ function MyCollateral() {
  
   //wire this up to backend
   const account = {
-    totalCollateral: "Rs. 1,200",
-    used: "Rs. 450",
-    remaining: "Rs. 750",
+    totalCollateral: "$1,200",
+    used: "$450",
+    remaining: "$750",
   };
   const [amount, setAmount] = useState("");
   const [transactionId, setTransactionId] = useState("");

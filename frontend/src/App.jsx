@@ -26,6 +26,7 @@ function App() {
       <Route path="/" element={<Dashboard />} />
       <Route path="/login" element={<Authentication />} />
       <Route path="/browse-auction" element={<BrowseAuction />} />
+      <Route path="/about" element={<About />} />
       <Route path="/auction/:id" element={<AuctionDetails />} />
       <Route path="/admin-authentication" element={<AdminAuthentication />} />
       <Route path="/admin-dashboard" element={<AdminDashboard />} />
@@ -81,14 +82,6 @@ function App() {
         }
       />
 
-      <Route
-        path="/about"
-        element={
-          <ProtectedRoute>
-            <About />
-          </ProtectedRoute>
-        }
-      />
 
     </Routes>
   );
