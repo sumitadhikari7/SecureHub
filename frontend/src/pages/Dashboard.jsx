@@ -210,6 +210,25 @@ function Dashboard() {
       featuredAuctions.forEach((a) => socket.emit("leaveAuction", a.auction_id));
     };
   }, [featuredAuctions]);
+
+  useEffect(() => {
+    const handleBidUpdate = ({ auction_id, current_price }) => {
+      setFeaturedAuctions((prev) =>
+        prev.map((a) =>
+          a.auction_id === auction_id ? { ...a, current_price } : a
+        )
+      );
+
+      setBidInputs((prev) => ({
+        ...prev,
+        [auction_id]: current_price + 1,
+      }));
+    };
+
+    socket.on("bidUpdate", handleBidUpdate);
+
+    return () => socket.off("bidUpdate", handleBidUpdate);
+  }, []);
   
   const markAuctionEnded = (id) => {
     setEndedAuctions((prev) => {
