@@ -17,6 +17,7 @@
     "nodemailer": "^9.0.3",
     "pg": "^8.22.0",
     "redis": "^6.1.0",
+    "socket.io": "^4.8.3",
     "xyz": "^5.0.0"
   },
   "devDependencies": {
