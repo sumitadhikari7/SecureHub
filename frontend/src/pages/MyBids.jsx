@@ -53,7 +53,22 @@ function MyBids() {
     return () => {
       bids.forEach((b) => socket.emit("leaveAuction", b.auction_id));
     };
+  }, [bids]);
 
+  useEffect(() => {
+    const handleBidUpdate = ({ auction_id, current_price }) => {
+      setBids((prev) =>
+        prev.map((b) =>
+          b.auction_id === auction_id ? { ...b, current_bid: current_price } : b
+        )
+      );
+    };
+
+    socket.on("bidUpdate", handleBidUpdate);
+
+    return () => socket.off("bidUpdate", handleBidUpdate);
+  }, []);
+  
   const getStatusClass = (status) => {
     switch (status) {
       case "Winning":
