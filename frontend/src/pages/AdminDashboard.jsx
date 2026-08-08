@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import './AdminDashboard.css';
 
@@ -5,19 +6,62 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // TODO: replace with actual logged-in admin data (from auth context/API)
-  const admin = {
-    name: "Admin",
-    email: "securehub.certified@gmail.com",
-    role: "Super Admin"
+  const [admin, setAdmin] = useState({ 
+    name: "Admin", 
+    email: "securehub.certified@gmail.com", 
+    role: "Super Admin" 
+  });
+  const [statsData, setStatsData] = useState({ 
+    totalUsers: 0, 
+    flaggedAccounts: 0, 
+    pendingCollateral: 0, 
+    activeAuctions: 0 
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Fetch real admin info
+    fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setAdmin((prev) => ({
+          ...prev,
+          name: data.name || "Admin",
+          email: data.email || "securehub.certified@gmail.com"
+        }));
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+
+    // 2. Fetch stats
+    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setStatsData(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await fetch("http://localhost:5000/api/admin/logout", { method: "POST", credentials: "include" });
+    navigate("/admin-authentication");
   };
 
-  // TODO: replace with real numbers from API
   const stats = [
-    { id: 1, label: "Total Users", value: "12,480" },
-    { id: 2, label: "Flagged Accounts", value: "37", alert: true },
-    { id: 3, label: "Pending Collateral", value: "14", alert: true },
-    { id: 4, label: "Active Auctions", value: "902" }
+    { id: 1, label: "Total Users", value: statsData.totalUsers.toLocaleString() },
+    { id: 2, label: "Flagged Accounts", value: statsData.flaggedAccounts, alert: statsData.flaggedAccounts > 0 },
+    { id: 3, label: "Pending Collateral", value: statsData.pendingCollateral, alert: statsData.pendingCollateral > 0 },
+    { id: 4, label: "Active Auctions", value: statsData.activeAuctions.toLocaleString() }
   ];
 
   const dashboardItems = [
@@ -29,23 +73,18 @@ function AdminDashboard() {
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
 
-  const handleLogout = () => {
-    // TODO: clear admin auth/session here
-    console.log("Admin logged out");
-    navigate("/admin/login");
-  };
-
-  const initials = admin.name
-    .split(" ")
+  const adminInitials = admin.name
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "AD";
+
+  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
     <div className="admin-dashboard-page">
-
       <aside className="admin-sidebar">
-        <div className="admin-avatar">{initials}</div>
+        <div className="admin-avatar">{adminInitials}</div>
         <h4>{admin.name}</h4>
         <p>{admin.email}</p>
         <span className="admin-role-tag">{admin.role}</span>
@@ -55,9 +94,7 @@ function AdminDashboard() {
             <Link
               to={item.path}
               key={item.id}
-              className={`sidebar-nav-link ${
-                location.pathname === item.path ? "active" : ""
-              }`}
+              className={`sidebar-nav-link ${location.pathname === item.path ? "active" : ""}`}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               {item.title}
@@ -70,12 +107,11 @@ function AdminDashboard() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Logout 🚪
         </button>
       </aside>
 
       <main className="admin-dashboard-content">
-
         <div className="admin-dashboard-header">
           <h1>Admin Dashboard</h1>
           <p>Manage users, fraud reports, and collateral from one place.</p>
@@ -83,10 +119,7 @@ function AdminDashboard() {
 
         <div className="admin-stats-grid">
           {stats.map((stat) => (
-            <div
-              className={`stat-card ${stat.alert ? "stat-alert" : ""}`}
-              key={stat.id}
-            >
+            <div className={`stat-card ${stat.alert ? "stat-alert" : ""}`} key={stat.id}>
               <p className="stat-label">{stat.label}</p>
               <h2 className="stat-value">{stat.value}</h2>
             </div>
@@ -98,13 +131,10 @@ function AdminDashboard() {
             <Link to={item.path} className="admin-card" key={item.id}>
               <div className="admin-card-icon">{item.icon}</div>
               <h3>{item.title}</h3>
-              <p>{item.desc}</p>
             </Link>
           ))}
         </div>
-
       </main>
-
     </div>
   );
 }
