@@ -7,6 +7,8 @@ const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+const http = require('http');              
+const { Server } = require('socket.io');   
 
 const authRouter = require('./auth');
 
