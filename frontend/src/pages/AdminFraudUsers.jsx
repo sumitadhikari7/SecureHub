@@ -6,12 +6,11 @@ function AdminFraudUsers() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // TODO: replace with actual logged-in admin data (from auth context/API)
-  const admin = {
+  const [admin, setAdmin] = useState({
     name: "Admin",
     email: "securehub.certified@gmail.com",
     role: "Super Admin"
-  };
+  });
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
@@ -28,42 +27,74 @@ function AdminFraudUsers() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch Admin Session & Flagged Users on Mount with Access Guard
   useEffect(() => {
-    const fetchFlaggedUsers = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    // 1. Fetch real admin info
+    fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setAdmin((prev) => ({
+          ...prev,
+          name: data.name || "Admin",
+          email: data.email || "securehub.certified@gmail.com"
+        }));
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
 
-        // TODO: replace with real API endpoint, e.g. /api/admin/flagged-accounts
-        const res = await fetch("/api/admin/flagged-accounts", {
+    // 2. Verify stats and fetch flagged accounts
+    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then(() => {
+        return fetch("http://localhost:5000/api/admin/flagged-accounts", {
           credentials: "include"
         });
-
-        if (!res.ok) {
-          throw new Error("Failed to load flagged accounts");
-        }
-
-        const data = await res.json();
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load flagged accounts");
+        return res.json();
+      })
+      .then((data) => {
         setFlaggedUsers(data.flaggedAccounts || data);
-      } catch (err) {
-        setError(err.message || "Something went wrong while loading flagged accounts.");
-      } finally {
         setLoading(false);
-      }
-    };
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+  }, [navigate]);
 
-    fetchFlaggedUsers();
-  }, []);
-
-  const handleLogout = () => {
-    // TODO: clear admin auth/session here
-    console.log("Admin logged out");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/admin/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    navigate("/admin-authentication");
   };
 
   const handleUnsuspend = async (userId) => {
-    // TODO: call real API, e.g. PATCH /api/admin/users/:id/unsuspend
-    setFlaggedUsers((prev) => prev.filter((u) => u.id !== userId));
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/unsuspend`, {
+        method: "PATCH",
+        credentials: "include"
+      });
+
+      if (!res.ok) throw new Error("Failed to unsuspend user");
+
+      setFlaggedUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err) {
+      alert(err.message || "Could not unsuspend user.");
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -79,11 +110,9 @@ function AdminFraudUsers() {
       .join("")
       .toUpperCase() || "?";
 
-  const adminInitials = admin.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  const adminInitials = getInitials(admin.name);
+
+  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
     <div className="admin-dashboard-page">
@@ -114,7 +143,7 @@ function AdminFraudUsers() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Logout 🚪
         </button>
       </aside>
 
@@ -137,9 +166,7 @@ function AdminFraudUsers() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="flagged-loading">Loading flagged accounts...</div>
-        ) : error ? (
+        {error ? (
           <div className="flagged-error">{error}</div>
         ) : filteredUsers.length === 0 ? (
           <div className="flagged-empty">No flagged accounts found.</div>
@@ -177,7 +204,7 @@ function AdminFraudUsers() {
           </div>
         )}
 
-        {!loading && !error && (
+        {!error && (
           <p className="flagged-count">
             Showing {filteredUsers.length} of {flaggedUsers.length} flagged accounts
           </p>
