@@ -2,18 +2,15 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./AdminCollateralRequest.css";
 
-const REVIEWED_STORAGE_KEY = "reviewedCollateralRequestIds";
-
 function AdminCollateralRequests() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // TODO: replace with actual logged-in admin data (from auth context/API)
-  const admin = {
+  const [admin, setAdmin] = useState({
     name: "Admin",
     email: "securehub.certified@gmail.com",
     role: "Super Admin"
-  };
+  });
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
@@ -31,60 +28,62 @@ function AdminCollateralRequests() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    // 1. Fetch real admin info
+    fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setAdmin((prev) => ({
+          ...prev,
+          name: data.name || "Admin",
+          email: data.email || "securehub.certified@gmail.com"
+        }));
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
 
-        // TODO: replace with real API endpoint, e.g. /api/admin/collateral-requests
-        const res = await fetch("/api/admin/collateral-requests", {
+    // 2. Verify stats and fetch collateral requests
+    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then(() => {
+        return fetch("http://localhost:5000/api/admin/collateral-requests", {
           credentials: "include"
         });
-
-        if (!res.ok) {
-          throw new Error("Failed to load collateral requests");
-        }
-
-        const data = await res.json();
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load collateral requests");
+        return res.json();
+      })
+      .then((data) => {
         const list = data.requests || data;
-
-        // Filter out any requests already handled in this session
-        // (in case the list is refetched after returning from Manage Collateral)
-        const reviewedIds = JSON.parse(
-          sessionStorage.getItem(REVIEWED_STORAGE_KEY) || "[]"
-        );
-        setRequests(list.filter((r) => !reviewedIds.includes(r.id)));
-      } catch (err) {
-        setError(err.message || "Something went wrong while loading collateral requests.");
-      } finally {
+        setRequests(list);
         setLoading(false);
-      }
-    };
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+  }, [navigate]);
 
-    fetchRequests();
-  }, []);
-
-  const handleLogout = () => {
-    // TODO: clear admin auth/session here
-    console.log("Admin logged out");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/admin/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    navigate("/admin-authentication");
   };
 
   const handleManage = (request) => {
-    // Remove from the visible list right away
-    setRequests((prev) => prev.filter((r) => r.id !== request.id));
-
-    // Remember it was handled so it stays gone if this list is revisited
-    const reviewedIds = JSON.parse(
-      sessionStorage.getItem(REVIEWED_STORAGE_KEY) || "[]"
-    );
-    sessionStorage.setItem(
-      REVIEWED_STORAGE_KEY,
-      JSON.stringify([...reviewedIds, request.id])
-    );
-
-    // TODO: adjust route/params to match your Manage Collateral page
-    navigate(`/admin/manage-collateral/${request.id}`);
+    navigate(`/admin-manage-collateral/${request.id}`);
   };
 
   const filteredRequests = useMemo(() => {
@@ -105,6 +104,8 @@ function AdminCollateralRequests() {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
     <div className="admin-dashboard-page">
@@ -135,7 +136,7 @@ function AdminCollateralRequests() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Logout 🚪
         </button>
       </aside>
 
@@ -158,50 +159,59 @@ function AdminCollateralRequests() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="collateral-loading">Loading collateral requests...</div>
-        ) : error ? (
+        {error ? (
           <div className="collateral-error">{error}</div>
         ) : filteredRequests.length === 0 ? (
           <div className="collateral-empty">No collateral requests found.</div>
         ) : (
-          <div className="collateral-list">
-            {filteredRequests.map((request) => (
-              <div key={request.id} className="collateral-card">
-                <div className="collateral-main">
-                  <div className="collateral-avatar">
-                    {getInitials(request.name)}
-                  </div>
-                  <div>
-                    <div className="collateral-user-name">{request.name}</div>
-                    <div className="collateral-user-email">{request.email}</div>
-                    <div className="collateral-meta">
-                      <span className="status-badge">Pending</span>
-                      <span className="collateral-amount">
-                        {request.amount ? `$${request.amount}` : "—"}
-                      </span>
-                      <span className="collateral-date">
-                        Submitted{" "}
-                        {request.submittedAt
-                          ? new Date(request.submittedAt).toLocaleDateString()
-                          : "—"}
-                      </span>
+          <table className="ledger-table">
+            <thead>
+              <tr>
+                <th>Requester</th>
+                <th>Amount</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRequests.map((request) => (
+                <tr key={request.id}>
+                  <td>
+                    <div className="requester-cell">
+                      <div className="avatar-sm">{getInitials(request.name)}</div>
+                      <div>
+                        <div className="requester-name">{request.name}</div>
+                        <div className="requester-email">{request.email}</div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <button
-                  className="action-btn manage"
-                  onClick={() => handleManage(request)}
-                >
-                  Manage Collateral
-                </button>
-              </div>
-            ))}
-          </div>
+                  </td>
+                  <td className="mono">
+                    {request.amount ? `$${request.amount}` : "—"}
+                  </td>
+                  <td className="mono">
+                    {request.submittedAt
+                      ? new Date(request.submittedAt).toLocaleDateString()
+                      : "—"}
+                  </td>
+                  <td>
+                    <span className="stamp stamp-pending">Pending</span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn-manage"
+                      onClick={() => handleManage(request)}
+                    >
+                      Manage →
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
-        {!loading && !error && (
+        {!error && (
           <p className="collateral-count">
             Showing {filteredRequests.length} of {requests.length} collateral requests
           </p>
