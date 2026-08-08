@@ -72,7 +72,17 @@ function BrowseAuction() {
 
   }, []);
 
+  useEffect(() => {
+    if (!auctions.length) return;
 
+    auctions.forEach((a) => socket.emit("joinAuction", a.auction_id));
+
+    return () => {
+      auctions.forEach((a) => socket.emit("leaveAuction", a.auction_id));
+    };
+  }, [auctions]);
+
+  
 
   const handleViewAuction = (auctionId) => {
 
