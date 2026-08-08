@@ -6,12 +6,11 @@ function AdminManageUsers() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // TODO: replace with actual logged-in admin data (from auth context/API)
-  const admin = {
+  const [admin, setAdmin] = useState({
     name: "Admin",
     email: "securehub.certified@gmail.com",
     role: "Super Admin"
-  };
+  });
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
@@ -30,22 +29,51 @@ function AdminManageUsers() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
+    // 1. Fetch real admin info
+    fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        return res.json();
+      })
+      .then((data) => {
+        setAdmin((prev) => ({
+          ...prev,
+          name: data.name || "Admin",
+          email: data.email || "securehub.certified@gmail.com"
+        }));
+      })
+      .catch(() => {
+        navigate("/admin-authentication");
+      });
+
+    // 2. Fetch users and verify session via stats
     const fetchUsers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // TODO: replace with real API endpoint, e.g. /api/admin/users
-        const res = await fetch("/api/admin/users", {
+        const statsRes = await fetch("http://localhost:5000/api/admin/stats", {
+          credentials: "include"
+        });
+        if (!statsRes.ok) {
+          navigate("/admin-authentication");
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/admin/users", {
           credentials: "include"
         });
 
         if (!res.ok) {
+          if (res.status === 401) {
+            navigate("/admin-authentication");
+            return;
+          }
           throw new Error("Failed to load users");
         }
 
         const data = await res.json();
-        setUsers(data.users || data);
+        setUsers(data);
       } catch (err) {
         setError(err.message || "Something went wrong while loading users.");
       } finally {
@@ -54,19 +82,30 @@ function AdminManageUsers() {
     };
 
     fetchUsers();
-  }, []);
+  }, [navigate]);
 
-  const handleLogout = () => {
-    // TODO: clear admin auth/session here
-    console.log("Admin logged out");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    await fetch("http://localhost:5000/api/admin/logout", { method: "POST", credentials: "include" });
+    navigate("/admin-authentication");
   };
 
   const handleStatusChange = async (userId, newStatus) => {
-    // TODO: call real API, e.g. PATCH /api/admin/users/:id/status
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
-    );
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+        credentials: "include"
+      });
+
+      if (!res.ok) throw new Error("Failed to update status");
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
+      );
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -122,7 +161,7 @@ function AdminManageUsers() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Logout 🚪
         </button>
       </aside>
 
@@ -159,7 +198,7 @@ function AdminManageUsers() {
 
         <div className="manage-users-table-wrapper">
           {loading ? (
-            <div className="manage-users-loading">Loading users...</div>
+            <div className="manage-users-loading">Loading users... 🛡️</div>
           ) : error ? (
             <div className="manage-users-error">{error}</div>
           ) : filteredUsers.length === 0 ? (
@@ -180,7 +219,15 @@ function AdminManageUsers() {
                     <td>
                       <div className="user-cell">
                         <div className="user-cell-avatar">
-                          {getInitials(user.name)}
+                          {user.profileImage ? (
+                            <img 
+                              src={user.profileImage} 
+                              alt={user.name} 
+                              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                            />
+                          ) : (
+                            getInitials(user.name)
+                          )}
                         </div>
                         <div>
                           <div className="user-cell-name">{user.name}</div>
