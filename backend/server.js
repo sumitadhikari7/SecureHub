@@ -545,4 +545,4 @@ io.on('connection', (socket) => {
 
 app.set('io', io); // lets route handlers reach io via req.app.get('io')
 
-app.listen(5000, () => console.log("🚀 Server running on port 5000!"));
+server.listen(5000, () => console.log("🚀 Server running on port 5000!"));
