@@ -248,8 +248,6 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
       `,
       [id]
     );
-    console.log("Seller:", auctionResult.rows[0].seller_id);
-    console.log("Bidder:", req.session.userId);
 
     if (auctionResult.rows.length === 0) {
       return res.status(404).json({
@@ -258,6 +256,15 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     }
 
     const auction = auctionResult.rows[0];
+    const now = new Date();
+
+    // NEW — server-side time enforcement
+    if (now < new Date(auction.start_time)) {
+      return res.status(400).json({ error: "Auction hasn't started yet." });
+    }
+    if (now > new Date(auction.end_time)) {
+      return res.status(400).json({ error: "Auction has already ended." });
+    }
 
     if (auction.seller_id === req.session.userId) {
       return res.status(403).json({
@@ -292,6 +299,14 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     );
 
     await pool.query('COMMIT');
+
+    // NEW — broadcast to everyone watching this auction
+    const io = req.app.get('io');
+    io.to(`auction:${id}`).emit('bidUpdate', {
+      auction_id: Number(id),
+      current_price: Number(amount),
+      bidder_id: req.session.userId,
+    });
 
     res.json({
       success: true
