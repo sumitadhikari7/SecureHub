@@ -33,22 +33,22 @@ app.use(
 app.use(express.json());
 
 // Session Middleware
-app.use(
-  session({
-    store: new pgSession({
-      pool: pool,
-      tableName: 'session',
-    }),
-    secret: process.env.SESSION_SECRET || "super-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: false,
-    },
-  })
-);
+const sessionMiddleware = session({
+  store: new pgSession({
+    pool: pool,
+    tableName: 'session',
+  }),
+  secret: process.env.SESSION_SECRET || "super-secret-key",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: false,
+  },
+});
+
+app.use(sessionMiddleware);
 
 // Auth check
 app.get("/api/me", (req, res) => {
