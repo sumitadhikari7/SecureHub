@@ -23,7 +23,6 @@ function App() {
     <Routes>
 
       {/* Public Routes */}
-      <Route path="/" element={<Authentication />} />
       <Route path="/login" element={<Authentication />} />
       <Route path="/browse-auction" element={<BrowseAuction />} />
       <Route path="/auction/:id" element={<AuctionDetails />} />

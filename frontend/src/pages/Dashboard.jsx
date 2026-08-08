@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import "./Dashboard.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { socket } from "../socket";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -186,7 +187,7 @@ function Dashboard() {
     loadDashboard();
   }, []);
 
-  useEffect(() => {
+    useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         setSelectedAuctionId(null);
@@ -200,6 +201,37 @@ function Dashboard() {
     };
   }, []);
 
+  // NEW — join/leave socket rooms as the auction list loads or changes
+  useEffect(() => {
+    if (!featuredAuctions.length) return;
+
+    featuredAuctions.forEach((a) => socket.emit("joinAuction", a.auction_id));
+
+    return () => {
+      featuredAuctions.forEach((a) => socket.emit("leaveAuction", a.auction_id));
+    };
+  }, [featuredAuctions]);
+
+  // NEW — listen for live bid updates
+  useEffect(() => {
+    const handleBidUpdate = ({ auction_id, current_price }) => {
+      setFeaturedAuctions((prev) =>
+        prev.map((a) =>
+          a.auction_id === auction_id ? { ...a, current_price } : a
+        )
+      );
+
+      setBidInputs((prev) => ({
+        ...prev,
+        [auction_id]: current_price + 1,
+      }));
+    };
+
+    socket.on("bidUpdate", handleBidUpdate);
+
+    return () => socket.off("bidUpdate", handleBidUpdate);
+  }, []);
+  
   const markAuctionEnded = (id) => {
     setEndedAuctions((prev) => {
       const updated = new Set(prev);
