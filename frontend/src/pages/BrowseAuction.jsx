@@ -82,7 +82,19 @@ function BrowseAuction() {
     };
   }, [auctions]);
 
-  
+  useEffect(() => {
+    const handleBidUpdate = ({ auction_id, current_price }) => {
+      setAuctions((prev) =>
+        prev.map((a) =>
+          a.auction_id === auction_id ? { ...a, current_price } : a
+        )
+      );
+    };
+
+    socket.on("bidUpdate", handleBidUpdate);
+
+    return () => socket.off("bidUpdate", handleBidUpdate);
+  }, []); 
 
   const handleViewAuction = (auctionId) => {
 
