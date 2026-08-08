@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "./Profile.css";
 import Footer from "../components/Footer";
@@ -10,7 +11,9 @@ function Profile() {
   // whatever handles login stores the logged-in user's id in localStorage
   // under "userId". Swap this for real auth (a token, a session cookie,
   // etc.) once that exists.
-  const [userId] = useState(() => localStorage.getItem("userId"));
+  const navigate = useNavigate(); // NEW
+  const [userId, setUserId] = useState(null); // CHANGED — no longer from localStorage
+  const [checkingSession, setCheckingSession] = useState(true); // NE
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,16 @@ function Profile() {
 
   const [profileImage, setProfileImage] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/me`, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.userId) setUserId(data.userId);
+      })
+      .catch((err) => console.error("Session check failed:", err))
+      .finally(() => setCheckingSession(false));
+  }, []);
 
   const toAbsoluteImageUrl = (path) => (path ? `${API_BASE}${path}` : null);
 
@@ -169,16 +182,32 @@ function Profile() {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    // Fixed: this used to fire the alert and log out regardless of the
-    // answer. window.confirm actually gates on the user's choice.
+  const handleLogout = async () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (!confirmed) return;
 
-    localStorage.removeItem("userId");
-    console.log("User logged out");
-    window.location.href = "/login";
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+
+    navigate("/", { replace: true });
   };
+
+  if (checkingSession) {
+    return (
+      <>
+        <Navbar />
+        <div className="profile-page">
+          <p style={{ textAlign: "center", marginTop: "50px" }}>Checking session...</p>
+        </div>
+      </>
+    );
+  }
 
   if (!userId) {
     return (
