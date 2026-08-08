@@ -57,15 +57,15 @@ return(
             <div className="stats-row">
               <div className="stat">
                 <p className="stat-label">Total Collateral</p>
-                <p className="stat-value">{account.totalCollateral}</p>
+                <p className="collateral-stat-value">{account.totalCollateral}</p>
               </div>
               <div className="stat">
                 <p className="stat-label">Used</p>
-                <p className="stat-value">{account.used}</p>
+                <p className="collateral-stat-value">{account.used}</p>
               </div>
               <div className="stat">
                 <p className="stat-label">Remaining</p>
-                <p className="stat-value">{account.remaining}</p>
+                <p className="collateral-stat-value">{account.remaining}</p>
               </div>
             </div>
           </div>
