@@ -130,13 +130,15 @@ function MyCollateral() {
       if (user.userId) {
         socket.emit("join-user-room", user.userId);
 
-        socket.on("collateral-updated", (data) => {
-          setAccount((prev) => ({
-            totalCollateral: Number(data.newBalance),
-            used: prev.used,
-            remaining: Number(data.newBalance) - prev.used,
-          }));
-        });
+      socket.on("collateral-updated", (data) => {
+        const newRemaining = Number(data.newBalance);
+
+        setAccount((prev) => ({
+          totalCollateral: newRemaining + prev.used,
+          used: prev.used,
+          remaining: newRemaining,
+        }));
+      });
       }
     };
 

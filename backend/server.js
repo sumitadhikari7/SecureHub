@@ -508,6 +508,7 @@ io.engine.use(sessionMiddleware);
 io.on('connection', (socket) => {
   socket.on('joinAuction', (auctionId) => {
     const userId = socket.request.session?.userId;
+    socket.join(`user:${userId}`);
     if (!userId) {
       socket.emit('authError', 'Please log in to follow this auction live.');
       return;
@@ -806,7 +807,8 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
     );
 
     await client.query("COMMIT");
-
+    const io = req.app.get('io');
+    io.to(`user:${userId}`).emit('collateral-updated', { newBalance });
     res.json({
       success: true,
       message: "Collateral approved successfully! 🎉",
