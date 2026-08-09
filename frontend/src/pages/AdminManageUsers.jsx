@@ -133,7 +133,7 @@ function AdminManageUsers() {
     .toUpperCase();
 
   return (
-    <div className="admin-dashboard-page">
+    <div className="admin-command-center-page">
 
       <aside className="admin-sidebar">
         <div className="admin-avatar">{adminInitials}</div>
@@ -165,9 +165,9 @@ function AdminManageUsers() {
         </button>
       </aside>
 
-      <main className="admin-dashboard-content">
+      <main className="admin-command-center-content">
 
-        <div className="admin-dashboard-header">
+        <div className="admin-command-center-header">
           <h1>Manage Users</h1>
           <p>View, search, and update user account status.</p>
         </div>
