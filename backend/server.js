@@ -224,21 +224,38 @@ app.get('/api/auctions/:id', async (req, res) => {
 });
 
 // 🔨 PLACE BID
+// Collateral rule: only the current highest bidder on an auction has funds
+// held (deducted from users.balance). Every new highest bid:
+//   1. Refunds the PREVIOUS highest bidder's held amount back to their balance.
+//   2. Re-checks the new bidder's balance (which now reflects that refund if
+//      they're re-bidding on their own leading bid) against the new amount.
+//   3. Holds (deducts) the new amount from the new bidder's balance.
+// Because refunds happen the instant someone is outbid — not at auction end —
+// anyone who ends up losing has already gotten their money back. The only
+// balance still held when an auction closes belongs to the winner, which is
+// correct: that's their collateral paying for the win. No end-of-auction
+// settlement step is needed for refunds.
 app.post('/api/auctions/:id/bid', async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({ error: "Please login" });
   }
 
   const { id } = req.params;
-  const { amount } = req.body;
+  const bidderId = req.session.userId;
+  const bidAmount = Number(req.body.amount);
+
+  const client = await pool.connect();
 
   try {
-    const auctionResult = await pool.query(
-      `SELECT seller_id, current_price, start_time, end_time FROM auctions WHERE auction_id = $1`,
+    await client.query('BEGIN');
+
+    const auctionResult = await client.query(
+      `SELECT seller_id, current_price, start_time, end_time FROM auctions WHERE auction_id = $1 FOR UPDATE`,
       [id]
     );
 
     if (auctionResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: "Auction not found" });
     }
 
@@ -246,47 +263,91 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     const now = new Date();
 
     if (now < new Date(auction.start_time)) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: "Auction hasn't started yet." });
     }
     if (now > new Date(auction.end_time)) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: "Auction has already ended." });
     }
-
-    if (auction.seller_id === req.session.userId) {
+    if (auction.seller_id === bidderId) {
+      await client.query('ROLLBACK');
       return res.status(403).json({ error: "You cannot bid on your own auction." });
     }
-
-    if (Number(amount) <= Number(auction.current_price)) {
+    if (!Number.isFinite(bidAmount) || bidAmount <= Number(auction.current_price)) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: "Bid must be higher than the current price." });
     }
 
-    await pool.query('BEGIN');
+    // Release the current top bidder's held collateral (if there is one) —
+    // this happens before the balance check below so a user re-topping their
+    // own leading bid sees their previously-held amount as available again.
+    const topBidResult = await client.query(
+      `SELECT bidder_id, bid_amount FROM bids WHERE auction_id = $1 ORDER BY bid_amount DESC LIMIT 1 FOR UPDATE`,
+      [id]
+    );
 
-    await pool.query(
+    if (topBidResult.rows.length > 0) {
+      const { bidder_id: prevBidderId, bid_amount: prevAmount } = topBidResult.rows[0];
+      await client.query(
+        `UPDATE users SET balance = COALESCE(balance, 0) + $1 WHERE user_id = $2`,
+        [prevAmount, prevBidderId]
+      );
+    }
+
+    // Lock the bidder's row and confirm they can cover the new bid.
+    const bidderResult = await client.query(
+      `SELECT balance FROM users WHERE user_id = $1 FOR UPDATE`,
+      [bidderId]
+    );
+
+    if (bidderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const availableBalance = Number(bidderResult.rows[0].balance) || 0;
+
+    if (bidAmount > availableBalance) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        error: `Insufficient collateral balance. You have $${availableBalance.toFixed(2)} available — load more collateral to place this bid.`
+      });
+    }
+
+    // Hold the new bid amount.
+    const newBalanceResult = await client.query(
+      `UPDATE users SET balance = balance - $1 WHERE user_id = $2 RETURNING balance`,
+      [bidAmount, bidderId]
+    );
+
+    await client.query(
       `INSERT INTO bids (auction_id, bidder_id, bid_amount, bid_time) VALUES ($1, $2, $3, NOW())`,
-      [id, req.session.userId, amount]
+      [id, bidderId, bidAmount]
     );
 
-    await pool.query(
+    await client.query(
       `UPDATE auctions SET current_price = $1 WHERE auction_id = $2`,
-      [amount, id]
+      [bidAmount, id]
     );
 
-    await pool.query('COMMIT');
+    await client.query('COMMIT');
 
     const io = req.app.get('io');
     io.to(`auction:${id}`).emit('bidUpdate', {
       auction_id: Number(id),
-      current_price: Number(amount),
-      bidder_id: req.session.userId,
+      current_price: bidAmount,
+      bidder_id: bidderId,
     });
 
-    res.json({ success: true });
+    res.json({ success: true, newBalance: newBalanceResult.rows[0].balance });
 
   } catch (err) {
-    await pool.query('ROLLBACK');
+    await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -351,16 +412,20 @@ app.get('/api/profile/:userId', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
-        user_id,
-        full_name,
-        email,
-        phone_number,
-        address,
-        dob,
-        profile_image,
-        balance
-       FROM users
-       WHERE user_id = $1`,
+        u.user_id,
+        u.full_name,
+        u.email,
+        u.phone_number,
+        u.address,
+        u.dob,
+        u.profile_image,
+        u.balance,
+        COALESCE(
+          (SELECT SUM(amount) FROM collateral_requests WHERE user_id = u.user_id AND status = 'approved'),
+          0
+        ) AS "totalCollateralLoaded"
+       FROM users u
+       WHERE u.user_id = $1`,
       [userId]
     );
 
