@@ -24,7 +24,7 @@ function AdminFraudUsers() {
 
   const [flaggedUsers, setFlaggedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch Admin Session & Flagged Users on Mount with Access Guard
@@ -115,7 +115,7 @@ function AdminFraudUsers() {
   if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
-    <div className="admin-dashboard-page">
+    <div className="admin-command-center-page">
 
       <aside className="admin-sidebar">
         <div className="admin-avatar">{adminInitials}</div>
@@ -147,9 +147,9 @@ function AdminFraudUsers() {
         </button>
       </aside>
 
-      <main className="admin-dashboard-content">
+      <main className="admin-command-center-content">
 
-        <div className="admin-dashboard-header">
+        <div className="admin-command-center-header">
           <h1>Flagged Accounts</h1>
           <p>Review suspended accounts and restore access when resolved.</p>
         </div>
@@ -182,7 +182,7 @@ function AdminFraudUsers() {
                     <div className="flagged-user-name">{user.name}</div>
                     <div className="flagged-user-email">{user.email}</div>
                     <div className="flagged-meta">
-                      <span className="status-badge">Suspended</span>
+                      <span className="flagged-status-badge">Suspended</span>
                       <span className="flagged-date">
                         Since{" "}
                         {user.suspendedAt
@@ -194,7 +194,7 @@ function AdminFraudUsers() {
                 </div>
 
                 <button
-                  className="action-btn unsuspend"
+                  className="flagged-action-btn unsuspend"
                   onClick={() => handleUnsuspend(user.id)}
                 >
                   Unsuspend
