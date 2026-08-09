@@ -45,7 +45,7 @@ function AdminManageCollateral() {
 
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
 
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
