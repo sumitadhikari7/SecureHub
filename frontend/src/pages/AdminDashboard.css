@@ -163,6 +163,18 @@
   font-size: 14px;
 }
 
+.command-center-loading {
+  width: 100%;
+  max-width: 900px;
+  background-color: #1e293b;
+  border: 1px solid #263449;
+  border-radius: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
 .admin-command-center-stats-grid {
   width: 100%;
   max-width: 900px;

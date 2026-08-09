@@ -24,7 +24,7 @@ function AdminCollateralRequests() {
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -105,44 +105,42 @@ function AdminCollateralRequests() {
     .join("")
     .toUpperCase();
 
-  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
-
   return (
-    <div className="admin-dashboard-page">
+    <div className="collateral-req-page">
 
-      <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
+      <aside className="collateral-req-sidebar">
+        <div className="collateral-req-avatar">{adminInitials}</div>
         <h4>{admin.name}</h4>
         <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <span className="collateral-req-role-tag">{admin.role}</span>
 
-        <nav className="sidebar-nav">
+        <nav className="collateral-req-nav">
           {dashboardItems.map((item) => (
             <Link
               to={item.path}
               key={item.id}
-              className={`sidebar-nav-link ${
+              className={`collateral-req-nav-link ${
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
+              <span className="collateral-req-nav-icon">{item.icon}</span>
               {item.title}
             </Link>
           ))}
         </nav>
 
-        <div className="sidebar-quote">
+        <div className="collateral-req-quote">
           <p>"{motivationalQuote}"</p>
         </div>
 
-        <button className="logout-btn" onClick={handleLogout}>
+        <button className="collateral-req-logout-btn" onClick={handleLogout}>
           Logout 🚪
         </button>
       </aside>
 
-      <main className="admin-dashboard-content">
+      <main className="collateral-req-content">
 
-        <div className="admin-dashboard-header">
+        <div className="collateral-req-header">
           <h1>Collateral Requests</h1>
           <p>Review pending collateral submissions from users.</p>
         </div>
@@ -159,7 +157,9 @@ function AdminCollateralRequests() {
           </div>
         </div>
 
-        {error ? (
+        {loading ? (
+          <div className="collateral-loading">Loading collateral requests…</div>
+        ) : error ? (
           <div className="collateral-error">{error}</div>
         ) : filteredRequests.length === 0 ? (
           <div className="collateral-empty">No collateral requests found.</div>
@@ -211,7 +211,7 @@ function AdminCollateralRequests() {
           </table>
         )}
 
-        {!error && (
+        {!loading && !error && (
           <p className="collateral-count">
             Showing {filteredRequests.length} of {requests.length} collateral requests
           </p>

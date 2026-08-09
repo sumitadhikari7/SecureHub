@@ -184,8 +184,6 @@ function AdminManageCollateral() {
 
   const transactionIdValue = request?.transactionId ?? request?.transaction_id ?? "—";
 
-  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
-
   return (
     <div className="collateral-mgmt-page">
       <aside className="collateral-mgmt-sidebar">
@@ -228,7 +226,9 @@ function AdminManageCollateral() {
           ← Back to Collateral Requests
         </Link>
 
-        {!id ? (
+        {loading ? (
+          <div className="manage-loading">Loading request details…</div>
+        ) : !id ? (
           <div className="manage-empty">
             Pick a request from{" "}
             <Link to="/admin-collateral-requests">Collateral Requests</Link> to

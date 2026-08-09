@@ -79,8 +79,6 @@ function AdminDashboard() {
     .join("")
     .toUpperCase() || "AD";
 
-  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
-
   return (
     <div className="admin-command-center-page">
       <aside className="admin-sidebar">
@@ -117,23 +115,29 @@ function AdminDashboard() {
           <p>Manage users, fraud reports, and collateral from one place.</p>
         </div>
 
-        <div className="admin-command-center-stats-grid">
-          {stats.map((stat) => (
-            <div className={`stat-card ${stat.alert ? "stat-alert" : ""}`} key={stat.id}>
-              <p className="stat-label">{stat.label}</p>
-              <h2 className="stat-value">{stat.value}</h2>
+        {loading ? (
+          <div className="command-center-loading">Loading dashboard data…</div>
+        ) : (
+          <>
+            <div className="admin-command-center-stats-grid">
+              {stats.map((stat) => (
+                <div className={`stat-card ${stat.alert ? "stat-alert" : ""}`} key={stat.id}>
+                  <p className="stat-label">{stat.label}</p>
+                  <h2 className="stat-value">{stat.value}</h2>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="admin-command-center-grid">
-          {dashboardItems.map((item) => (
-            <Link to={item.path} className="admin-card" key={item.id}>
-              <div className="admin-card-icon">{item.icon}</div>
-              <h3>{item.title}</h3>
-            </Link>
-          ))}
-        </div>
+            <div className="admin-command-center-grid">
+              {dashboardItems.map((item) => (
+                <Link to={item.path} className="admin-card" key={item.id}>
+                  <div className="admin-card-icon">{item.icon}</div>
+                  <h3>{item.title}</h3>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );
