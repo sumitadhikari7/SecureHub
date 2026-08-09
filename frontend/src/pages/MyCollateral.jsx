@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable preserve-caught-error */
 import { useState, useEffect } from "react";
+import {socket} from "../socket";
 import Navbar from "../components/Navbar";
 import "./MyCollateral.css";
 import Footer from "../components/Footer";
