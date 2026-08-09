@@ -132,9 +132,9 @@ function MyCollateral() {
 
         socket.on("collateral-updated", (data) => {
           setAccount((prev) => ({
-            totalCollateral: data.newBalance,
+            totalCollateral: Number(data.newBalance),
             used: prev.used,
-            remaining: data.newBalance - prev.used,
+            remaining: Number(data.newBalance) - prev.used,
           }));
         });
       }
