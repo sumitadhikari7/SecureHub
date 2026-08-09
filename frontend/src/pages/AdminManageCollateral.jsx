@@ -187,39 +187,39 @@ function AdminManageCollateral() {
   if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
-    <div className="admin-dashboard-page">
-      <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
+    <div className="collateral-mgmt-page">
+      <aside className="collateral-mgmt-sidebar">
+        <div className="collateral-mgmt-avatar">{adminInitials}</div>
         <h4>{admin.name}</h4>
         <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <span className="collateral-mgmt-role-tag">{admin.role}</span>
 
-        <nav className="sidebar-nav">
+        <nav className="collateral-mgmt-nav">
           {dashboardItems.map((item) => (
             <Link
               to={item.path}
               key={item.id}
-              className={`sidebar-nav-link ${
+              className={`collateral-mgmt-nav-link ${
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
+              <span className="collateral-mgmt-nav-icon">{item.icon}</span>
               {item.title}
             </Link>
           ))}
         </nav>
 
-        <div className="sidebar-quote">
+        <div className="collateral-mgmt-quote">
           <p>"{motivationalQuote}"</p>
         </div>
 
-        <button className="logout-btn" onClick={handleLogout}>
+        <button className="collateral-mgmt-logout-btn" onClick={handleLogout}>
           Logout 🚪
         </button>
       </aside>
 
-      <main className="admin-dashboard-content">
-        <div className="admin-dashboard-header">
+      <main className="collateral-mgmt-content">
+        <div className="collateral-mgmt-header">
           <h1>Manage Collateral</h1>
           <p>Review the request and update the user's balance.</p>
         </div>
@@ -246,7 +246,7 @@ function AdminManageCollateral() {
             {submitted === "approved"
               ? `Balance updated for ${request.name}.`
               : `Request from ${request.name} was rejected.`}
-            <Link to="/admin-collateral-requests" className="action-btn manage-return">
+            <Link to="/admin-collateral-requests" className="collateral-mgmt-action-btn manage-return">
               Return to Collateral Requests
             </Link>
           </div>
@@ -330,7 +330,7 @@ function AdminManageCollateral() {
               <div className="manage-actions">
                 <button
                   type="button"
-                  className="action-btn reject"
+                  className="collateral-mgmt-action-btn reject"
                   onClick={handleReject}
                   disabled={submitting}
                 >
@@ -338,7 +338,7 @@ function AdminManageCollateral() {
                 </button>
                 <button
                   type="submit"
-                  className="action-btn approve"
+                  className="collateral-mgmt-action-btn approve"
                   disabled={submitting}
                 >
                   {submitting ? "Saving…" : "Approve & Update Balance"}
