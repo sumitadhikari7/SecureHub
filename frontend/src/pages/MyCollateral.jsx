@@ -88,18 +88,19 @@ function MyCollateral() {
 
         console.log("Profile data:", profileData);
 
-        // Support different possible backend field names
-        const balance = Number(
-          profileData.balance ??
-            profileData.collateral ??
-            profileData.totalCollateral ??
-            0
-        );
+        // `balance` is the current AVAILABLE collateral (already net of any
+        // amount currently held on active bids). `totalCollateralLoaded` is
+        // everything ever approved for this user, regardless of holds - so
+        // Used = Total - Remaining reflects money actually locked in bids
+        // right now, instead of the old hardcoded 0.
+        const remaining = Number(profileData.balance ?? 0);
+        const totalLoaded = Number(profileData.totalCollateralLoaded ?? remaining);
+        const used = Math.max(totalLoaded - remaining, 0);
 
         setAccount({
-          totalCollateral: balance,
-          used: 0,
-          remaining: balance,
+          totalCollateral: totalLoaded,
+          used,
+          remaining,
         });
       } catch (err) {
         console.error("Failed to fetch balance:", err);
@@ -322,7 +323,7 @@ function MyCollateral() {
                   </span>
 
                   <h2>
-                    Thanks — we've notified the admin
+                    Thanks - we've notified the admin
                   </h2>
 
                   <p className="sub-label">
