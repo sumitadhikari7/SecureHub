@@ -231,6 +231,25 @@ function Dashboard() {
 
     return () => socket.off("bidUpdate", handleBidUpdate);
   }, []);
+
+  useEffect(() => {
+  const handleNewAuction = (auction) => {
+    setFeaturedAuctions((prev) => {
+      // avoid duplicates if this client also owns the auction and already has it
+      if (prev.some((a) => a.auction_id === auction.auction_id)) return prev;
+      return [auction, ...prev];
+    });
+
+    setBidInputs((prev) => ({
+      ...prev,
+      [auction.auction_id]: Number(auction.starting_price ?? auction.startingPrice ?? 0),
+    }));
+  };
+
+  socket.on("newAuction", handleNewAuction);
+
+  return () => socket.off("newAuction", handleNewAuction);
+}, []);
   
   const markAuctionEnded = (id) => {
     setEndedAuctions((prev) => {
