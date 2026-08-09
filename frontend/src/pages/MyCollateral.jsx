@@ -121,6 +121,32 @@ function MyCollateral() {
     fetchBalance();
   }, [activeTab]);
 
+    useEffect(() => {
+    const fetchUserId = async () => {
+      const res = await fetch("http://localhost:5000/api/me", {
+        credentials: "include",
+      });
+      const user = await res.json();
+      if (user.userId) {
+        socket.emit("join-user-room", user.userId);
+
+        socket.on("collateral-updated", (data) => {
+          setAccount((prev) => ({
+            totalCollateral: data.newBalance,
+            used: prev.used,
+            remaining: data.newBalance - prev.used,
+          }));
+        });
+      }
+    };
+
+    fetchUserId();
+
+    return () => {
+      socket.off("collateral-updated");
+    };
+  }, []);
+
   // ==========================================
   // SEND COLLATERAL REQUEST
   // ==========================================
