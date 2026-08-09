@@ -82,7 +82,7 @@ function AdminDashboard() {
   if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
 
   return (
-    <div className="admin-dashboard-page">
+    <div className="admin-command-center-page">
       <aside className="admin-sidebar">
         <div className="admin-avatar">{adminInitials}</div>
         <h4>{admin.name}</h4>
@@ -111,13 +111,13 @@ function AdminDashboard() {
         </button>
       </aside>
 
-      <main className="admin-dashboard-content">
-        <div className="admin-dashboard-header">
+      <main className="admin-command-center-content">
+        <div className="admin-command-center-header">
           <h1>Admin Dashboard</h1>
           <p>Manage users, fraud reports, and collateral from one place.</p>
         </div>
 
-        <div className="admin-stats-grid">
+        <div className="admin-command-center-stats-grid">
           {stats.map((stat) => (
             <div className={`stat-card ${stat.alert ? "stat-alert" : ""}`} key={stat.id}>
               <p className="stat-label">{stat.label}</p>
@@ -126,7 +126,7 @@ function AdminDashboard() {
           ))}
         </div>
 
-        <div className="admin-dashboard-grid">
+        <div className="admin-command-center-grid">
           {dashboardItems.map((item) => (
             <Link to={item.path} className="admin-card" key={item.id}>
               <div className="admin-card-icon">{item.icon}</div>
