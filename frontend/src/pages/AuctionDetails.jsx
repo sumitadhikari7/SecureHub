@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {socket} from "../socket";
 import Navbar from "../components/Navbar";
 import './AuctionDetails.css';
 
