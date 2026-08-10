@@ -96,6 +96,34 @@ function BrowseAuction() {
     return () => socket.off("bidUpdate", handleBidUpdate);
   }, []); 
 
+  useEffect(() => {
+    const handleNewAuction = (auction) => {
+      const now = new Date();
+      const start = new Date(auction.start_time);
+      const end = new Date(auction.end_time);
+
+      const status =
+        now < start ? "upcoming" : now > end ? "ended" : "active";
+
+      const withStatus = { ...auction, status };
+
+      setAuctions((prev) => {
+        if (prev.some((a) => a.auction_id === withStatus.auction_id)) {
+          return prev;
+        }
+        return [withStatus, ...prev];
+      });
+
+      socket.emit("joinAuction", withStatus.auction_id);
+    };
+
+    socket.on("newAuction", handleNewAuction);
+
+    return () => {
+      socket.off("newAuction", handleNewAuction);
+    };
+  }, []);
+
   const handleViewAuction = (auctionId) => {
 
     navigate(`/auction/${auctionId}`);
