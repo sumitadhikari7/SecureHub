@@ -7,3 +7,4 @@ backend/uploads/
 *.log
 test-db.js
 test-email.js
+*.csv
