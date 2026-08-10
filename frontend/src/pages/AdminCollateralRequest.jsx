@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import {socket} from "../socket";
 import "./AdminCollateralRequest.css";
 
 function AdminCollateralRequests() {
@@ -69,6 +70,20 @@ function AdminCollateralRequests() {
         navigate("/admin-authentication");
       });
   }, [navigate]);
+
+  useEffect(() => {                             
+    const handleNewCollateralRequest = (newRequest) => {
+      setRequests((prev) => {
+        if (prev.some((r) => r.id === newRequest.id)) return prev;
+        return [newRequest, ...prev];
+      });
+    };
+    socket.on("newCollateralRequest", handleNewCollateralRequest);
+    return () => {
+      socket.off("newCollateralRequest", handleNewCollateralRequest);
+    };
+  }, []);                                      
+
 
   const handleLogout = async () => {
     try {

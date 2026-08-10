@@ -520,6 +520,10 @@ const io = new Server(server, {
 io.engine.use(sessionMiddleware);
 
 io.on('connection', (socket) => {
+  const adminId = socket.request.session?.adminId;
+  if (adminId) {
+    socket.join('adminRoom');
+  }
   socket.on('joinAuction', (auctionId) => {
     const userId = socket.request.session?.userId;
     socket.join(`user:${userId}`);
@@ -677,7 +681,7 @@ app.post('/api/user/collateral-request', async (req, res) => {
 
   try {
     const userResult = await pool.query(
-      `SELECT balance FROM users WHERE user_id = $1`,
+      `SELECT full_name, email, balance FROM users WHERE user_id = $1`,
       [req.session.userId]
     );
 
@@ -687,11 +691,25 @@ app.post('/api/user/collateral-request', async (req, res) => {
 
     const currentBalance = userResult.rows[0].balance || 0;
 
-    await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO collateral_requests (user_id, amount, current_balance, transaction_id, status, created_at)
-       VALUES ($1, $2, $3, $4, 'pending', NOW())`,
+       VALUES ($1, $2, $3, $4, 'pending', NOW())
+       RETURNING request_id, created_at`,
       [req.session.userId, amount, currentBalance, transactionId]
     );
+
+    const io = req.app.get('io');
+    io.to('adminRoom').emit('newCollateralRequest', {
+      id: insertResult.rows[0].request_id,
+      userId: req.session.userId,
+      name: userResult.rows[0].full_name,
+      email: userResult.rows[0].email,
+      amount,
+      currentBalance,
+      transactionId,
+      status: 'pending',
+      submittedAt: insertResult.rows[0].created_at
+    });
 
     return res.setHeader('Content-Type', 'application/json').status(201).json({ message: "Collateral request submitted successfully! 🚀" });
   } catch (err) {
