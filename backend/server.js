@@ -145,6 +145,20 @@ app.post('/api/auctions', upload.single('image'), async (req, res) => {
       `INSERT INTO auctions (seller_id, title, description, starting_price, current_price, start_time, end_time, image_url) VALUES ($1, $2, $3, $4, $4, $5, $6, $7) RETURNING *`,
       [req.session.userId, title, description, parseFloat(startingPrice), startTime, endTime, imageUrl]
     );
+
+       const sellerResult = await pool.query(
+      `SELECT full_name FROM users WHERE user_id = $1`,
+      [req.session.userId]
+    );
+
+    const auction = {
+      ...newAuction.rows[0],
+      seller_name: sellerResult.rows[0]?.full_name || null,
+    };
+
+    const io = req.app.get('io');
+    io.emit('newAuction', auction); 
+
     res.status(201).json(newAuction.rows[0]);
   } catch (err) {
     res.status(500).json({ message: "Database failure" });
