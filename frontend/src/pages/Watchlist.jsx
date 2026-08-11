@@ -149,6 +149,7 @@ function Watchlist() {
   };
 
   useEffect(() => {
+    //eslint-disable-next-line
     fetchWatchlist();
   }, []);
 
