@@ -6,7 +6,6 @@
     box-sizing: border-box;
 }
 
-/* ==================== HERO SECTION ==================== */
 .hero {
     background: #1e293b;
     color: white;
@@ -90,6 +89,25 @@
     font-weight: bold;
     color: #1e293b;
     margin: 0;
+}
+
+/* 🆕 Makes the "Watchlist Items" stat card behave like a link into the
+   Watchlist page without changing how it or its siblings look. */
+.card-stat-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    flex: 1;
+    transition: transform 0.15s ease;
+}
+
+.card-stat-link:hover {
+    transform: translateY(-2px);
+}
+
+.card-stat-link .card {
+    height: 100%;
+    box-sizing: border-box;
 }
 
 /* ==================== AUCTION CONTAINER ==================== */
@@ -204,6 +222,48 @@
 
 .timer-badge.ended {
     background-color: #ef4444;
+}
+
+/* 🆕 Star/heart toggle button for adding or removing an auction from the
+   watchlist. Sits top-left of the card image, mirroring how .modal-close
+   sits top-right of the expanded modal. */
+.watchlist-toggle-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    color: #cbd5e1;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    z-index: 2;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.watchlist-toggle-btn:hover {
+    transform: scale(1.12);
+}
+
+.watchlist-toggle-btn.active {
+    color: #d97706;
+}
+
+.watchlist-toggle-btn:disabled {
+    cursor: not-allowed;
+    color: #e2e8f0;
+    opacity: 0.7;
+}
+
+.watchlist-toggle-btn:disabled:hover {
+    transform: none;
 }
 
 .auction-info-box {
@@ -408,6 +468,26 @@
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
 }
 
+/* 🆕 Empty state for the Watchlist page when nothing has been starred yet */
+.watchlist-empty {
+    background: white;
+    border-radius: 10px;
+    padding: 50px 30px;
+    text-align: center;
+    color: #64748b;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.watchlist-empty h3 {
+    color: #1e293b;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.watchlist-empty p {
+    margin-bottom: 20px;
+}
 
 @media (max-width: 900px) {
     .stats {
@@ -477,7 +557,7 @@
 }
 
 .modal-content::before {
-    content: "LIVE AUCTION 🔨";
+    content: "LIVE AUCTION";
     display: block;
     background-color: #d97706;
     color: white;

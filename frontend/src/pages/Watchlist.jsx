@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from "react";
+// 🆕 Reuses the exact same stylesheet as Dashboard so cards, buttons, the
+// modal, and the responsive breakpoints all look and behave identically.
 import "./Dashboard.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { socket } from "../socket";
 import { Link } from "react-router-dom";
-// 1. IMPORT TOAST AND TOASTER
 import toast, { Toaster } from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -18,6 +19,8 @@ function toDate(value) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+// Same countdown badge component as Dashboard.jsx, kept local to this file
+// so this page has no dependency on Dashboard.jsx internals.
 function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
   const formatMs = (diff) => {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -46,28 +49,16 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
       const now = new Date();
 
       if (start > now) {
-        return {
-          text: formatMs(start - now),
-          phase: "upcoming",
-        };
+        return { text: formatMs(start - now), phase: "upcoming" };
       }
 
       if (end <= now) {
-        return {
-          text: "Auction Ended",
-          phase: "ended",
-        };
+        return { text: "Auction Ended", phase: "ended" };
       }
 
-      return {
-        text: formatMs(end - now),
-        phase: "live",
-      };
+      return { text: formatMs(end - now), phase: "live" };
     } catch {
-      return {
-        text: "Format Error",
-        phase: "ended",
-      };
+      return { text: "Format Error", phase: "ended" };
     }
   };
 
@@ -80,14 +71,8 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
       setState(value);
 
       if (value.phase !== prevPhaseRef.current) {
-        if (value.phase === "ended" && onEnded) {
-          onEnded();
-        }
-
-        if (value.phase === "live" && onStarted) {
-          onStarted();
-        }
-
+        if (value.phase === "ended" && onEnded) onEnded();
+        if (value.phase === "live" && onStarted) onStarted();
         prevPhaseRef.current = value.phase;
       }
     }, 1000);
@@ -113,109 +98,83 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
   );
 }
 
-function Dashboard() {
-  const [stats, setStats] = useState({
-    activeAuctions: 0,
-    activeBids: 0,
-    watchlist: 0,
-  });
-
-  const [featuredAuctions, setFeaturedAuctions] = useState([]);
+function Watchlist() {
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [bidInputs, setBidInputs] = useState({});
   const [endedAuctions, setEndedAuctions] = useState(() => new Set());
   const [upcomingAuctions, setUpcomingAuctions] = useState(() => new Set());
   const [selectedAuctionId, setSelectedAuctionId] = useState(null);
-  const [fetchError, setFetchError] = useState(null);
-  // 🆕 Tracks which auction_ids the current user has starred, so the toggle
-  // button on each card renders filled/empty correctly.
-  const [watchlistedIds, setWatchlistedIds] = useState(() => new Set());
 
-  const fetchDashboardData = async () => {
+  const fetchWatchlist = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/dashboard`, {
+      const response = await fetch(`${API_BASE}/api/watchlist`, {
         credentials: "include",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data?.message || data?.error || "Failed to load dashboard"
-        );
+        throw new Error(data?.message || "Failed to load watchlist");
       }
 
-      setStats(data.stats);
-      setFeaturedAuctions(data.featured);
+      setItems(data);
       setFetchError(null);
 
       const initialBids = {};
       const initialUpcoming = new Set();
-      const initialWatchlist = new Set();
 
-      data.featured.forEach((auction) => {
-        const currentPrice = Number(
-          auction.current_price ?? auction.currentPrice ?? 0
-        );
-
-        const startingPrice = Number(
-          auction.starting_price ?? auction.startingPrice ?? 0
-        );
+      data.forEach((auction) => {
+        const currentPrice = Number(auction.current_price ?? 0);
+        const startingPrice = Number(auction.starting_price ?? 0);
 
         initialBids[auction.auction_id] =
           currentPrice > 0 ? currentPrice + 1 : startingPrice;
 
-        const start = toDate(auction.start_time ?? auction.startTime);
-
+        const start = toDate(auction.start_time);
         if (start && start > new Date()) {
           initialUpcoming.add(auction.auction_id);
-        }
-
-        if (auction.is_watchlisted) {
-          initialWatchlist.add(auction.auction_id);
         }
       });
 
       setBidInputs(initialBids);
       setUpcomingAuctions(initialUpcoming);
-      setWatchlistedIds(initialWatchlist);
       setLoading(false);
     } catch (error) {
-      console.error("Dashboard fetch error:", error);
-      setFetchError(error.message || "Failed to load dashboard");
+      console.error("Watchlist fetch error:", error);
+      setFetchError(error.message || "Failed to load watchlist");
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    //eslint-disable-next-line 
-    fetchDashboardData();
+    fetchWatchlist();
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setSelectedAuctionId(null);
-      }
+      if (e.key === "Escape") setSelectedAuctionId(null);
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Join the socket room for every watchlisted auction so bid updates on
+  // this page are live, exactly like the Dashboard.
   useEffect(() => {
-    if (!featuredAuctions.length) return;
+    if (!items.length) return;
 
-    featuredAuctions.forEach((a) => socket.emit("joinAuction", a.auction_id));
+    items.forEach((a) => socket.emit("joinAuction", a.auction_id));
 
     return () => {
-      featuredAuctions.forEach((a) => socket.emit("leaveAuction", a.auction_id));
+      items.forEach((a) => socket.emit("leaveAuction", a.auction_id));
     };
-  }, [featuredAuctions]);
+  }, [items]);
 
   useEffect(() => {
     const handleBidUpdate = ({ auction_id, current_price }) => {
-      setFeaturedAuctions((prev) =>
+      setItems((prev) =>
         prev.map((a) =>
           a.auction_id === auction_id ? { ...a, current_price } : a
         )
@@ -231,29 +190,6 @@ function Dashboard() {
     return () => socket.off("bidUpdate", handleBidUpdate);
   }, []);
 
-  useEffect(() => {
-    const handleNewAuction = (auction) => {
-      setFeaturedAuctions((prev) => [auction, ...prev]);
-
-      setBidInputs((prev) => ({
-        ...prev,
-        [auction.auction_id]: Number(
-          auction.starting_price ?? auction.startingPrice ?? 0
-        ),
-      }));
-
-      const start = toDate(auction.start_time ?? auction.startTime);
-      if (start && start > new Date()) {
-        setUpcomingAuctions((prev) => new Set(prev).add(auction.auction_id));
-      }
-
-      socket.emit("joinAuction", auction.auction_id);
-    };
-
-    socket.on("newAuction", handleNewAuction);
-    return () => socket.off("newAuction", handleNewAuction);
-  }, []);
-  
   const markAuctionEnded = (id) => {
     setEndedAuctions((prev) => new Set(prev).add(id));
   };
@@ -276,10 +212,7 @@ function Dashboard() {
   const handleDecrement = (id, min) => {
     const value = Number(bidInputs[id]) || 0;
     if (value > min) {
-      setBidInputs((prev) => ({
-        ...prev,
-        [id]: value - 1,
-      }));
+      setBidInputs((prev) => ({ ...prev, [id]: value - 1 }));
     }
   };
 
@@ -295,14 +228,10 @@ function Dashboard() {
     const value = raw === "" || raw === undefined ? NaN : Number(raw);
 
     if (isNaN(value) || value < min) {
-      setBidInputs((prev) => ({
-        ...prev,
-        [id]: min,
-      }));
+      setBidInputs((prev) => ({ ...prev, [id]: min }));
     }
   };
 
-  // 2. REPLACED ALL ALERT() CALLS WITH TOAST NOTIFICATIONS
   const handlePlaceBid = async (id, title, minAllowed) => {
     if (upcomingAuctions.has(id)) {
       toast.error("Bidding has not started yet!");
@@ -325,9 +254,7 @@ function Dashboard() {
       const response = await fetch(`${API_BASE}/api/auctions/${id}/bid`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount }),
       });
 
@@ -338,16 +265,16 @@ function Dashboard() {
       }
 
       toast.success(`Bid of $${amount} placed on ${title}`);
-      fetchDashboardData();
+      fetchWatchlist();
     } catch (error) {
       console.error(error);
       toast.error(`${error.message}`);
     }
   };
 
-  // 🆕 Adds or removes an auction from the watchlist. e.stopPropagation()
-  // keeps the click from also triggering the card's "open modal" handler.
-  const handleToggleWatchlist = async (e, auctionId) => {
+  // On this page the star always starts filled (everything here IS
+  // watchlisted), and clicking it removes the item from the list entirely.
+  const handleRemoveFromWatchlist = async (e, auctionId) => {
     e.stopPropagation();
 
     try {
@@ -365,24 +292,11 @@ function Dashboard() {
         throw new Error(data.message || "Failed to update watchlist");
       }
 
-      setWatchlistedIds((prev) => {
-        const updated = new Set(prev);
-        if (data.watchlisted) {
-          updated.add(auctionId);
-        } else {
-          updated.delete(auctionId);
-        }
-        return updated;
-      });
-
-      setStats((prev) => ({
-        ...prev,
-        watchlist: Math.max(0, prev.watchlist + (data.watchlisted ? 1 : -1)),
-      }));
-
-      toast.success(
-        data.watchlisted ? "Added to your watchlist" : "Removed from watchlist"
-      );
+      if (!data.watchlisted) {
+        setItems((prev) => prev.filter((a) => a.auction_id !== auctionId));
+        if (selectedAuctionId === auctionId) setSelectedAuctionId(null);
+        toast.success("Removed from watchlist");
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Failed to update watchlist");
@@ -390,70 +304,36 @@ function Dashboard() {
   };
 
   const renderAuctionBody = (auction, { expanded = false } = {}) => {
-    const currentPrice = Number(
-      auction.current_price ?? auction.currentPrice ?? 0
-    );
-
-    const startingPrice = Number(
-      auction.starting_price ?? auction.startingPrice ?? 0
-    );
-
+    const currentPrice = Number(auction.current_price ?? 0);
+    const startingPrice = Number(auction.starting_price ?? 0);
     const minBid = currentPrice > 0 ? currentPrice + 1 : startingPrice;
-    const seller = auction.seller_name ?? auction.sellerName ?? "Unknown";
+    const seller = auction.seller_name ?? "Unknown";
     const inputValue = bidInputs[auction.auction_id] ?? minBid;
 
-    // FIX: endedAuctions is only populated when the countdown timer
-    // transitions from live -> ended WHILE the page is open. An auction
-    // that was already over at page load never fires that transition, so
-    // relying on the Set alone let an already-ended card's bid button
-    // stay enabled until someone actually tried to bid (the backend would
-    // reject it, but the button shouldn't offer it at all). Checking the
-    // raw end_time directly closes that gap regardless of when it ended.
-    const endTime = toDate(auction.end_time ?? auction.endTime);
-    const isEnded =
-      endedAuctions.has(auction.auction_id) ||
-      (endTime ? endTime <= new Date() : false);
+    const isEnded = endedAuctions.has(auction.auction_id);
     const isUpcoming = upcomingAuctions.has(auction.auction_id);
-    const isWatchlisted = watchlistedIds.has(auction.auction_id);
-    // A fresh watchlist add only makes sense for something not yet over -
-    // once it's ended there's nothing left to track. Items already
-    // watchlisted before ending remain removable (see the star's onClick).
-    const blockNewWatchlist = isEnded && !isWatchlisted;
 
     return (
       <>
         <div className="card-media-box">
           <button
-            className={`watchlist-toggle-btn ${isWatchlisted ? "active" : ""}`}
-            onClick={(e) => handleToggleWatchlist(e, auction.auction_id)}
-            disabled={blockNewWatchlist}
-            aria-label={
-              isWatchlisted ? "Remove from watchlist" : "Add to watchlist"
-            }
-            title={
-              blockNewWatchlist
-                ? "This auction has ended — can't add to watchlist"
-                : isWatchlisted
-                ? "Remove from watchlist"
-                : "Add to watchlist"
-            }
+            className="watchlist-toggle-btn active"
+            onClick={(e) => handleRemoveFromWatchlist(e, auction.auction_id)}
+            aria-label="Remove from watchlist"
+            title="Remove from watchlist"
           >
-            {isWatchlisted ? "★" : "☆"}
+            ★
           </button>
 
           <img
-            src={
-              auction.image_url ??
-              auction.imageUrl ??
-              "https://placehold.co/300x200"
-            }
+            src={auction.image_url ?? "https://placehold.co/300x200"}
             alt={auction.title}
             className="auction-img"
           />
 
           <AuctionTimer
-            startTime={auction.start_time ?? auction.startTime}
-            endTime={auction.end_time ?? auction.endTime}
+            startTime={auction.start_time}
+            endTime={auction.end_time}
             onEnded={() => markAuctionEnded(auction.auction_id)}
             onStarted={() => markAuctionStarted(auction.auction_id)}
           />
@@ -528,33 +408,11 @@ function Dashboard() {
     );
   };
 
-  const now = new Date();
-
-  const activeAuctions = featuredAuctions.filter((a) => {
-    const start = toDate(a.start_time);
-    const end = toDate(a.end_time);
-    return start && end && start <= now && end > now;
-  });
-
-  const upcomingAuctionsList = featuredAuctions.filter((a) => {
-    const start = toDate(a.start_time);
-    if (!start) return false;
-    const minutes = (start - now) / (1000 * 60);
-    return minutes > 0 && minutes <= 30;
-  });
-
-  const recentlyEndedAuctions = featuredAuctions.filter((a) => {
-    const end = toDate(a.end_time);
-    if (!end) return false;
-    const minutes = (now - end) / (1000 * 60);
-    return minutes >= 0 && minutes <= 30;
-  });
-
   if (loading) {
-    return <div className="loading">Loading SecureHub Dashboard...</div>;
+    return <div className="loading">Loading your watchlist...</div>;
   }
 
-  const selectedAuction = featuredAuctions.find(
+  const selectedAuction = items.find(
     (a) => a.auction_id === selectedAuctionId
   );
 
@@ -562,23 +420,19 @@ function Dashboard() {
     <>
       <Navbar />
 
-      {/* 3. TOASTER CONTAINER PLACED HERE */}
-      <Toaster 
-        position="top-right" 
+      <Toaster
+        position="top-right"
         toastOptions={{
           duration: 3000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }} 
+          style: { background: "#333", color: "#fff" },
+        }}
       />
 
       <div className="dashboard">
         <section className="hero">
-          <h1>Welcome to SecureHub</h1>
-          <p>Secure, transparent and real-time online bidding platform.</p>
-          <Link to="/browse-auction" className="hero-cta">Browse Auctions</Link>
+          <h1>My Watchlist</h1>
+          <p>Every auction you've starred, in one place.</p>
+          <Link to="/dashboard" className="hero-cta">Back to Dashboard</Link>
         </section>
 
         {fetchError && (
@@ -587,72 +441,38 @@ function Dashboard() {
           </div>
         )}
 
-        <section className="stats">
-          <div className="card">
-            <h3>Active Auctions</h3>
-            <p>{stats.activeAuctions}</p>
-          </div>
-
-          <div className="card">
-            <h3>My Active Bids</h3>
-            <p>{stats.activeBids}</p>
-          </div>
-
-          {/* 🆕 Now a real link into the dedicated Watchlist page */}
-          <Link to="/watchlist" className="card-stat-link">
-            <div className="card">
-              <h3>Watchlist Items</h3>
-              <p>{stats.watchlist}</p>
-            </div>
-          </Link>
-        </section>
-
         <section className="featured">
-          <h2>Active Auctions</h2>
+          <h2>Watchlisted Auctions</h2>
 
-          <div className="auction-container">
-            {activeAuctions.length ? (
-              activeAuctions.map((a) => (
-                <div
-                  key={a.auction_id}
-                  className="auction-card"
-                  onClick={() => setSelectedAuctionId(a.auction_id)}
-                >
-                  {renderAuctionBody(a)}
-                </div>
-              ))
-            ) : (
-              <p>No active auctions.</p>
-            )}
-          </div>
-
-          <h2>Starting Soon (30 Minutes)</h2>
-
-          <div className="auction-container">
-            {upcomingAuctionsList.map((a) => (
-              <div
-                key={a.auction_id}
-                className="auction-card upcoming"
-                onClick={() => setSelectedAuctionId(a.auction_id)}
-              >
-                {renderAuctionBody(a)}
-              </div>
-            ))}
-          </div>
-
-          <h2>Recently Ended</h2>
-
-          <div className="auction-container">
-            {recentlyEndedAuctions.map((a) => (
-              <div
-                key={a.auction_id}
-                className="auction-card ended"
-                onClick={() => setSelectedAuctionId(a.auction_id)}
-              >
-                {renderAuctionBody(a)}
-              </div>
-            ))}
-          </div>
+          {items.length ? (
+            <div className="auction-container">
+              {items.map((a) => {
+                const isEnded = endedAuctions.has(a.auction_id);
+                const isUpcoming = upcomingAuctions.has(a.auction_id);
+                return (
+                  <div
+                    key={a.auction_id}
+                    className={`auction-card ${
+                      isEnded ? "ended" : isUpcoming ? "upcoming" : ""
+                    }`}
+                    onClick={() => setSelectedAuctionId(a.auction_id)}
+                  >
+                    {renderAuctionBody(a)}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="watchlist-empty">
+              <h3>Your watchlist is empty</h3>
+              <p>
+                Tap the star on any auction card to keep an eye on it here.
+              </p>
+              <Link to="/browse-auction" className="hero-cta">
+                Browse Auctions
+              </Link>
+            </div>
+          )}
         </section>
       </div>
 
@@ -688,4 +508,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Watchlist;
