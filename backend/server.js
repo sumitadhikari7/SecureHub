@@ -11,6 +11,7 @@ const http = require('http');
 const { Server } = require('socket.io');   
 
 const authRouter = require('./auth');
+const { scoreBid, computeFeatures } = require('./fraudDetection');
 
 const app = express();
 const server = http.createServer(app); 
@@ -230,7 +231,7 @@ app.get('/api/auctions/:id', async (req, res) => {
 //   2. Re-checks the new bidder's balance (which now reflects that refund if
 //      they're re-bidding on their own leading bid) against the new amount.
 //   3. Holds (deducts) the new amount from the new bidder's balance.
-// Because refunds happen the instant someone is outbid — not at auction end —
+// Because refunds happen the instant someone is outbid - not at auction end -
 // anyone who ends up losing has already gotten their money back. The only
 // balance still held when an auction closes belongs to the winner, which is
 // correct: that's their collateral paying for the win. No end-of-auction
@@ -279,7 +280,7 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
       return res.status(400).json({ error: "Bid must be higher than the current price." });
     }
 
-    // Release the current top bidder's held collateral (if there is one) —
+    // Release the current top bidder's held collateral (if there is one) -
     // this happens before the balance check below so a user re-topping their
     // own leading bid sees their previously-held amount as available again.
     const topBidResult = await client.query(
@@ -311,7 +312,7 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     if (bidAmount > availableBalance) {
       await client.query('ROLLBACK');
       return res.status(400).json({
-        error: `Insufficient collateral balance. You have $${availableBalance.toFixed(2)} available — load more collateral to place this bid.`
+        error: `Insufficient collateral balance. You have $${availableBalance.toFixed(2)} available - load more collateral to place this bid.`
       });
     }
 
@@ -341,6 +342,63 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     });
 
     res.json({ success: true, newBalance: newBalanceResult.rows[0].balance });
+
+    // Fraud scoring happens AFTER the response is sent and outside the bid
+    // transaction — a scoring error or slow query here must never block or
+    // fail an actual bid. See fraudDetection.js for the model and caveats.
+    // Fraud scoring happens AFTER the response is sent
+(async () => {
+  try {
+    const features = await computeFeatures(pool, {
+      auctionId: Number(id),
+      bidderId
+    });
+
+    if (!features) return;
+
+    const fraudScore = scoreBid(features);
+
+    // Debug logs
+    console.log("=================================");
+    console.log("FRAUD DETECTION");
+    console.log("Bidder:", bidderId);
+    console.log("Auction:", id);
+    console.log("Features:", features);
+    console.log("Risk score:", fraudScore);
+    console.log(
+      "Prediction:",
+      fraudScore >= 0.5 ? "Fraudulent" : "Normal"
+    );
+    console.log("=================================");
+
+    // 🚨 THIS IS THE IF STATEMENT
+    if (fraudScore >= 0.5) {
+      const prediction = "Fraudulent";
+
+      await pool.query(
+        `INSERT INTO fraud_alerts
+          (user_id, auction_id, risk_score, prediction, alert_status, created_at)
+         VALUES
+          ($1, $2, $3, $4, 'pending', NOW())`,
+        [bidderId, id, fraudScore, prediction]
+      );
+
+      const io = req.app.get('io');
+
+      io.emit('fraudAlert', {
+        bidder_id: bidderId,
+        auction_id: Number(id),
+        risk_score: fraudScore,
+        prediction
+      });
+
+      console.log("🚨 FRAUD ALERT CREATED");
+    }
+
+  } catch (fraudErr) {
+    console.error("Fraud scoring error:", fraudErr.message);
+  }
+})();
 
   } catch (err) {
     await client.query('ROLLBACK');
@@ -733,13 +791,19 @@ app.get('/api/admin/collateral-requests/:id', async (req, res) => {
 });
 
 // ✅ APPROVE COLLATERAL REQUEST
+// Approval always adds the EXACT requested amount to the user's balance.
+// There is deliberately no way to pass a custom balance here (no
+// req.body.balance is read at all) - an admin's only choices are approve
+// (grants the requested amount, verified against the transaction ID) or
+// reject (grants nothing). This keeps "Total Collateral" (sum of approved
+// request amounts) and a user's real balance ceiling from ever drifting
+// apart, which is what happens if an admin can type an arbitrary number.
 app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
   if (!req.session.adminId) {
     return res.status(401).json({ message: "Unauthorized 🛑" });
   }
 
   const { id } = req.params;
-  const { balance: overrideBalance } = req.body || {};
   const client = await pool.connect();
 
   try {
@@ -773,23 +837,10 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
       return res.status(400).json({ message: "Invalid collateral amount" });
     }
 
-    // If the admin typed a specific balance into the form, use it directly.
-    // Otherwise fall back to adding the requested amount to whatever the user has now.
-    const hasOverride = overrideBalance !== undefined && overrideBalance !== null && overrideBalance !== "";
-    if (hasOverride && !Number.isFinite(Number(overrideBalance))) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ message: "Invalid balance value" });
-    }
-
-    const balanceResult = hasOverride
-      ? await client.query(
-          `UPDATE users SET balance = $1 WHERE user_id = $2 RETURNING balance`,
-          [Number(overrideBalance), userId]
-        )
-      : await client.query(
-          `UPDATE users SET balance = COALESCE(balance, 0) + $1 WHERE user_id = $2 RETURNING balance`,
-          [amount, userId]
-        );
+    const balanceResult = await client.query(
+      `UPDATE users SET balance = COALESCE(balance, 0) + $1 WHERE user_id = $2 RETURNING balance`,
+      [amount, userId]
+    );
 
     if (balanceResult.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -871,6 +922,56 @@ app.get('/api/admin/me', async (req, res) => {
   } catch (err) {
     console.error("Fetch admin session error:", err);
     res.status(500).json({ message: "Failed to fetch admin info" });
+  }
+});
+
+// 🕵️ GET FRAUD ALERTS
+app.get('/api/admin/fraud-alerts', async (req, res) => {
+  if (!req.session.adminId) {
+    return res.status(401).json({
+      message: "Unauthorized 🛑"
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+          f.alert_id AS id,
+          f.user_id AS "userId",
+          u.full_name AS name,
+          u.email,
+
+          f.auction_id AS "auctionId",
+          a.title AS "auctionTitle",
+
+          f.risk_score AS "riskScore",
+          f.prediction,
+          f.alert_status AS "alertStatus",
+
+          f.reviewed_by AS "reviewedBy",
+          f.reviewed_at AS "reviewedAt",
+          f.created_at AS "createdAt"
+
+       FROM fraud_alerts f
+
+       JOIN users u
+         ON u.user_id = f.user_id
+
+       LEFT JOIN auctions a
+         ON a.auction_id = f.auction_id
+
+       ORDER BY f.created_at DESC
+       LIMIT 100`
+    );
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error("Fetch fraud alerts error:", err);
+
+    res.status(500).json({
+      message: "Failed to load fraud alerts"
+    });
   }
 });
 
