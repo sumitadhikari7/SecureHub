@@ -98,7 +98,7 @@ function AuctionDetails() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(bidAmount),
-          // TODO: replace with the actual logged-in user's id once auth is wired up
+          
         }),
       });
 
