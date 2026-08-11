@@ -1,10 +1,11 @@
 import './Authentication.css';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
+import toast, { Toaster } from "react-hot-toast";
 
 function Authentication() {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState(1); // 1 = Email & Password input, 2 = OTP screen
+  const [step, setStep] = useState(1); // 1 = Input Form, 2 = OTP Screen
   const navigate = useNavigate(); 
 
   const [formData, setFormData] = useState({
@@ -25,10 +26,20 @@ function Authentication() {
     });
   };
 
-  // 🔐 LOGIN STEP 1 → Verify Credentials & Request OTP
+  // Helper to handle switching mode & resetting steps
+  const switchAuthMode = (loginState) => {
+    setIsLogin(loginState);
+    setStep(1);
+    setFormData((prev) => ({ ...prev, otp: "" }));
+  };
+
+  // ---------------------------------------------------------------------------
+  // 🔐 LOGIN FLOW
+  // ---------------------------------------------------------------------------
+
+  // LOGIN STEP 1 → Request OTP
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    console.log("Requesting OTP for:", formData.email);
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
@@ -44,21 +55,20 @@ function Authentication() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message || "OTP sent successfully! Check your email. 📩");
+        toast.success(data.message || "OTP sent successfully! Check your email. 📩");
         setStep(2); 
       } else {
-        alert(data.message || "Invalid email or password.");
+        toast.error(data.message || "Invalid email or password.");
       }
     } catch (error) {
       console.error("Login Step 1 Network Error:", error);
-      alert("Backend server connection failed.");
+      toast.error("Backend server connection failed.");
     }
   };
 
-  // 🛡️ LOGIN STEP 2 → Verify OTP Code
-  const handleOtpSubmit = async (e) => {
+  // LOGIN STEP 2 → Verify OTP
+  const handleLoginOtpSubmit = async (e) => {
     e.preventDefault();
-    console.log("Verifying OTP for:", formData.email);
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
@@ -74,49 +84,60 @@ function Authentication() {
       const data = await response.json();
 
       if (response.ok) {
-  alert("Access Granted! Welcome to SecureHub. 🔓");
+        toast.success("Access Granted! Welcome to SecureHub. 🔓");
 
-  console.log("Logged in user:", data.user);
+        localStorage.setItem("userId", String(data.user.user_id));
+        localStorage.setItem("userName", data.user.full_name);
+        localStorage.setItem("userEmail", data.user.email);
 
-  // Save user information
-  localStorage.setItem(
-    "userId",
-    String(data.user.user_id)
-  );
-
-  localStorage.setItem(
-    "userName",
-    data.user.full_name
-  );
-
-  localStorage.setItem(
-    "userEmail",
-    data.user.email
-  );
-
-  console.log(
-    "Saved userId:",
-    localStorage.getItem("userId")
-  );
-
-  navigate("/dashboard");
-} else {
-  alert(data.message || "Invalid OTP code entered.");
-}
+        navigate("/dashboard");
+      } else {
+        toast.error(data.message || "Invalid OTP code entered.");
+      }
     } catch (error) {
       console.error("Login Step 2 Network Error:", error);
-      alert("Verification server link down.");
+      toast.error("Verification server link down.");
     }
   };
 
-  // 📝 REGISTER SUBMIT → Write Account to Postgres Database
+  // ---------------------------------------------------------------------------
+  // 📝 REGISTRATION FLOW
+  // ---------------------------------------------------------------------------
+
+  // REGISTER STEP 1 → Validate & Request Registration OTP
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match ");
+      toast.error("Passwords do not match!");
       return;
     }
+
+    try {
+      // Endpoint to request an OTP before user account creation
+      const response = await fetch('http://localhost:5000/api/auth/register-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Verification code sent to your email! 📩");
+        setStep(2);
+      } else {
+        toast.error(data.message || "Failed to send verification code.");
+      }
+    } catch (error) {
+      console.error("Registration Request Error:", error);
+      toast.error("Could not reach server to send registration OTP.");
+    }
+  };
+
+  // REGISTER STEP 2 → Verify Registration OTP & Finalize User Creation
+  const handleRegisterOtpSubmit = async (e) => {
+    e.preventDefault();
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/register', {
@@ -128,28 +149,39 @@ function Authentication() {
           lastName: formData.lastName,
           phone: formData.phone,
           email: formData.email,
-          password: formData.password 
+          password: formData.password,
+          otp: formData.otp, // Pass OTP along with user payload to complete setup
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message || "Registration Successful! ");
-        setIsLogin(true); // Flip over to login layout state
-        setStep(1);
+        toast.success(data.message || "Account verified & registered! 🎉");
+        switchAuthMode(true); // Switch to Login screen
       } else {
-        alert(data.message || "Registration failed ");
+        toast.error(data.message || "OTP verification or registration failed.");
       }
     } catch (error) {
-      console.error("Registration Connection Error:", error);
-      alert("Could not talk to registration API backend.");
+      console.error("Registration Verification Error:", error);
+      toast.error("Could not talk to registration API backend.");
     }
   };
 
   return (
     <div className="auth">
-      
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            borderRadius: "8px",
+          },
+        }} 
+      />
+
       <section className="auth-hero">
         <h1>{isLogin ? "Login to SecureHub" : "Create Your Account"}</h1>
         <p>Secure and Transparent Online Bidding Platform</p>
@@ -157,17 +189,14 @@ function Authentication() {
         <div className="auth-toggle">
           <button
             className={isLogin ? "active" : ""}
-            onClick={() => {
-              setIsLogin(true);
-              setStep(1);
-            }}
+            onClick={() => switchAuthMode(true)}
           >
             Login
           </button>
 
           <button
             className={!isLogin ? "active" : ""}
-            onClick={() => setIsLogin(false)}
+            onClick={() => switchAuthMode(false)}
           >
             Register
           </button>
@@ -176,7 +205,7 @@ function Authentication() {
 
       <section className="auth-form-section">
         
-        {/* LOGIN FORM - STEP 1 */}
+        {/* ==================== LOGIN FORMS ==================== */}
         {isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleLoginSubmit}>
             <input
@@ -201,10 +230,9 @@ function Authentication() {
           </form>
         )}
 
-        {/* LOGIN FORM - STEP 2 */}
         {isLogin && step === 2 && (
-          <form className="auth-form" onSubmit={handleOtpSubmit}>
-            <p>Enter OTP sent to your email</p>
+          <form className="auth-form" onSubmit={handleLoginOtpSubmit}>
+            <p>Enter login OTP sent to {formData.email}</p>
 
             <input
               type="text"
@@ -215,7 +243,7 @@ function Authentication() {
             />
 
             <button type="submit" className="submit-btn">
-              Verify OTP
+              Verify OTP & Login
             </button>
 
             <button
@@ -228,14 +256,15 @@ function Authentication() {
           </form>
         )}
 
-        {/* REGISTRATION FORM */}
-        {!isLogin && (
+        {/* ==================== REGISTRATION FORMS ==================== */}
+        {!isLogin && step === 1 && (
           <form className="auth-form" onSubmit={handleRegisterSubmit}>
             <div className="form-group">
               <input
                 type="text"
                 name="firstName"
                 placeholder="First Name"
+                value={formData.firstName}
                 onChange={handleChange}
                 required
               />
@@ -244,6 +273,7 @@ function Authentication() {
                 type="text"
                 name="middleName"
                 placeholder="Middle Name"
+                value={formData.middleName}
                 onChange={handleChange}
               />
 
@@ -251,6 +281,7 @@ function Authentication() {
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
+                value={formData.lastName}
                 onChange={handleChange}
                 required
               />
@@ -260,6 +291,7 @@ function Authentication() {
               type="tel"
               name="phone"
               placeholder="Phone Number"
+              value={formData.phone}
               onChange={handleChange}
               required
             />
@@ -268,6 +300,7 @@ function Authentication() {
               type="email"
               name="email"
               placeholder="Email Address"
+              value={formData.email}
               onChange={handleChange}
               required
             />
@@ -277,6 +310,7 @@ function Authentication() {
                 type="password"
                 name="password"
                 placeholder="Password"
+                value={formData.password}
                 onChange={handleChange}
                 required
               />
@@ -285,13 +319,40 @@ function Authentication() {
                 type="password"
                 name="confirmPassword"
                 placeholder="Confirm Password"
+                value={formData.confirmPassword}
                 onChange={handleChange}
                 required
               />
             </div>
 
             <button type="submit" className="submit-btn">
-              Create Account
+              Send Verification Code
+            </button>
+          </form>
+        )}
+
+        {!isLogin && step === 2 && (
+          <form className="auth-form" onSubmit={handleRegisterOtpSubmit}>
+            <p>Enter registration verification code sent to {formData.email}</p>
+
+            <input
+              type="text"
+              name="otp"
+              placeholder="Enter 6-Digit Code"
+              onChange={handleChange}
+              required
+            />
+
+            <button type="submit" className="submit-btn">
+              Verify & Complete Registration
+            </button>
+
+            <button
+              type="button"
+              className="back-btn"
+              onClick={() => setStep(1)}
+            >
+              Back
             </button>
           </form>
         )}
@@ -300,17 +361,11 @@ function Authentication() {
       <section className="auth-footer">
         <p>
           {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <span
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setStep(1);
-            }}
-          >
+          <span onClick={() => switchAuthMode(!isLogin)}>
             {isLogin ? " Register" : " Login"}
           </span>
         </p>
       </section>
-
     </div>
   );
 }
