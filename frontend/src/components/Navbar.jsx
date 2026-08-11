@@ -25,7 +25,10 @@ function Navbar() {
     { label: "Create Auction", path: "/create-auction" },
     { label: "My Bids", path: "/my-bids" },
     { label: "My Collateral", path: "/my-collateral" },
-    // { label: "Profile", path: "/profile" },
+    {
+      label: <i className="fa-solid fa-cart-shopping"></i>,
+      path: "/watchlist"
+    }
   ];
 
   return (
