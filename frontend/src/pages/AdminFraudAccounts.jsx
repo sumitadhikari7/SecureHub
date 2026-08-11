@@ -65,7 +65,7 @@ function AdminFraudAccounts() {
       .catch(() => {
         navigate("/admin-authentication");
       });
-
+      // eslint-disable-next-line 
     fetchAlerts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
