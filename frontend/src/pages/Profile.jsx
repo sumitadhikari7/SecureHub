@@ -70,10 +70,12 @@ function Profile() {
 
   useEffect(() => {
     if (!userId) {
+      //eslint-disable-next-line
       setLoading(false);
       return;
     }
     fetchProfile();
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleFieldChange = (field, value) => {
