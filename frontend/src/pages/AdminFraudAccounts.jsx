@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import {socket} from "../socket";
 import "./AdminFraudAccounts.css";
 
 const DURATION_PRESETS = [
@@ -69,6 +70,23 @@ function AdminFraudAccounts() {
     fetchAlerts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
+  useEffect(() => {
+  socket.on("newFraudAlert", (alert) => {
+    setAlerts((prev) => [alert, ...prev]);
+  });
+
+  socket.on("fraudAlertUpdated", (updatedAlert) => {
+    setAlerts((prev) =>
+      prev.map((a) => (a.id === updatedAlert.id ? updatedAlert : a))
+    );
+  });
+
+  return () => {
+    socket.off("newFraudAlert");
+    socket.off("fraudAlertUpdated");
+  };
+}, []);
 
   const fetchAlerts = async () => {
     try {

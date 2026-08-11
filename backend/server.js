@@ -597,24 +597,42 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     );
     console.log("=================================");
 
-    if (fraudScore >= 0.65) {
+if (fraudScore >= 0.65) {
   const prediction = "Fraudulent";
 
-  await pool.query(
+  const insertResult = await pool.query(
     `INSERT INTO fraud_alerts
       (user_id, auction_id, risk_score, prediction, alert_status, features, created_at)
      VALUES
-      ($1, $2, $3, $4, 'pending', $5, NOW())`,
+      ($1, $2, $3, $4, 'pending', $5, NOW())
+     RETURNING alert_id, created_at`,
     [bidderId, id, fraudScore, prediction, JSON.stringify(features)]
   );
 
+      const bidderInfoResult = await pool.query(
+        `SELECT full_name, email FROM users WHERE user_id = $1`,
+        [bidderId]
+      );
+      const auctionTitleResult = await pool.query(
+        `SELECT title FROM auctions WHERE auction_id = $1`,
+        [id]
+      );
+
       const io = req.app.get('io');
 
-      io.emit('fraudAlert', {
-        bidder_id: bidderId,
-        auction_id: Number(id),
-        risk_score: fraudScore,
-        prediction
+      io.emit('newFraudAlert', {
+        id: insertResult.rows[0].alert_id,
+        userId: bidderId,
+        name: bidderInfoResult.rows[0]?.full_name ?? "Unknown",
+        email: bidderInfoResult.rows[0]?.email ?? "",
+        auctionId: Number(id),
+        auctionTitle: auctionTitleResult.rows[0]?.title ?? `Auction #${id}`,
+        riskScore: fraudScore,
+        prediction,
+        alertStatus: 'pending',
+        actionTaken: null,
+        suspendedUntil: null,
+        createdAt: insertResult.rows[0].created_at,
       });
 
       console.log("🚨 FRAUD ALERT CREATED");
@@ -1400,6 +1418,18 @@ app.post('/api/admin/fraud-alerts/:id/suspend', async (req, res) => {
       suspendedUntil,
     });
 
+      const io = req.app.get('io');
+      io.emit('fraudAlertUpdated', {
+      id: updatedAlert.rows[0].id,
+      alertStatus: updatedAlert.rows[0].alertStatus,
+      actionTaken: updatedAlert.rows[0].actionTaken,
+      suspensionDurationDays: updatedAlert.rows[0].suspensionDurationDays,
+      reviewedBy: updatedAlert.rows[0].reviewedBy,
+      reviewedAt: updatedAlert.rows[0].reviewedAt,
+      suspendedUntil,
+      suspensionReason: reason.trim(),
+    });
+
     res.json({
       success: true,
       message: "Account suspended and alert marked as reviewed.",
@@ -1441,7 +1471,11 @@ app.post('/api/admin/fraud-alerts/:id/dismiss', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Pending fraud alert not found" });
     }
-
+     const io = req.app.get('io');
+    io.emit('fraudAlertUpdated', {
+      ...result.rows[0],
+      suspensionReason: reason || null,
+    });
     res.json({
       success: true,
       message: "Alert dismissed as false positive.",
