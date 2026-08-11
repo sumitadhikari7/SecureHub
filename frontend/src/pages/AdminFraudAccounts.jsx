@@ -23,11 +23,11 @@ function AdminFraudAccounts() {
   });
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" },
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house" },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear" },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation" },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar" },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag" },
   ];
 
   const motivationalQuote =
@@ -229,10 +229,10 @@ function AdminFraudAccounts() {
       .toUpperCase() || "?";
 
   const adminInitials = admin.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "AD";
 
   const riskTier = (score) => {
     if (score >= 0.75) return "high";
@@ -251,10 +251,12 @@ function AdminFraudAccounts() {
   return (
     <div className="admin-command-center-page">
       <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
         <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
@@ -265,8 +267,8 @@ function AdminFraudAccounts() {
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
@@ -276,19 +278,19 @@ function AdminFraudAccounts() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout 🚪
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
       <main className="admin-command-center-content">
         <div className="admin-command-center-header">
-          <h1>Fraud Accounts</h1>
+          <h1>Flagged Accounts</h1>
           <p>Review model-flagged bidding activity and take action.</p>
         </div>
 
         <div className="fraud-header-row">
           <div className="fraud-search">
-            <span className="fraud-search-icon">🔍</span>
+            <i className="fa-solid fa-magnifying-glass fraud-search-icon"></i>
             <input
               type="text"
               placeholder="Search by bidder or auction..."
@@ -312,7 +314,9 @@ function AdminFraudAccounts() {
 
         <div className="fraud-table-wrapper">
           {loading ? (
-            <div className="fraud-loading">Loading fraud alerts... 🛡️</div>
+            <div className="fraud-loading">
+              <i className="fa-solid fa-spinner fa-spin"></i> Loading fraud alerts…
+            </div>
           ) : error ? (
             <div className="fraud-error">{error}</div>
           ) : filteredAlerts.length === 0 ? (
@@ -394,7 +398,7 @@ function AdminFraudAccounts() {
             <div className="fraud-modal-header">
               <h2>Fraud Alert Review</h2>
               <button className="fraud-modal-close" onClick={closeReview} aria-label="Close">
-                ✕
+                <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
 
@@ -473,7 +477,7 @@ function AdminFraudAccounts() {
                       setSelectedPreset(DEMO_PRESET);
                     }}
                   >
-                    ⚡ {DEMO_PRESET.label}
+                    <i className="fa-solid fa-bolt"></i> {DEMO_PRESET.label}
                   </button>
                   <span className="demo-duration-hint">
                     For testing — auto-lifts after 60 seconds.

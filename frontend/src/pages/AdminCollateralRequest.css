@@ -1,11 +1,13 @@
-.collateral-req-page {
+.admin-command-center-page {
   min-height: 100vh;
   background-color: #0f172a;
   font-family: "Segoe UI", sans-serif;
   display: flex;
 }
 
-.collateral-req-sidebar {
+/* ---------- Sidebar ---------- */
+
+.admin-sidebar {
   width: 220px;
   flex-shrink: 0;
   background-color: #16213a;
@@ -22,7 +24,14 @@
   overflow-y: auto;
 }
 
-.collateral-req-avatar {
+.admin-sidebar-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.admin-avatar {
   background-color: #1e293b;
   border: 1px solid #334155;
   color: #38bdf8;
@@ -37,21 +46,21 @@
   margin-bottom: 14px;
 }
 
-.collateral-req-sidebar h4 {
+.admin-sidebar h4 {
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
-.collateral-req-sidebar p {
+.admin-sidebar p {
   color: #64748b;
   font-size: 12px;
   margin-bottom: 12px;
   word-break: break-word;
 }
 
-.collateral-req-role-tag {
+.admin-role-tag {
   background-color: rgba(56, 189, 248, 0.1);
   color: #38bdf8;
   font-size: 11px;
@@ -64,7 +73,7 @@
   margin-bottom: 26px;
 }
 
-.collateral-req-nav {
+.sidebar-nav {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -72,7 +81,7 @@
   margin-bottom: 26px;
 }
 
-.collateral-req-nav-link {
+.sidebar-nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -83,32 +92,35 @@
   padding: 10px 12px;
   border-radius: 6px;
   text-align: left;
-  transition: 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-.collateral-req-nav-icon {
-  font-size: 15px;
+.sidebar-nav-icon {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
-.collateral-req-nav-link:hover {
+.sidebar-nav-link:hover {
   background-color: rgba(255, 255, 255, 0.05);
   color: #ffffff;
 }
 
-.collateral-req-nav-link.active {
+.sidebar-nav-link.active {
   background-color: rgba(56, 189, 248, 0.1);
   color: #38bdf8;
 }
 
-.collateral-req-quote {
+.sidebar-quote {
   background-color: #1e293b;
   border-left: 3px solid #38bdf8;
   border-radius: 6px;
-  padding: 14px 14px;
+  padding: 14px;
   margin-bottom: 26px;
 }
 
-.collateral-req-quote p {
+.sidebar-quote p {
   color: #94a3b8;
   font-size: 12px;
   font-style: italic;
@@ -117,7 +129,7 @@
   text-align: left;
 }
 
-.collateral-req-logout-btn {
+.logout-btn {
   width: 100%;
   background-color: transparent;
   color: #94a3b8;
@@ -129,35 +141,52 @@
   cursor: pointer;
   transition: 0.2s;
   margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.collateral-req-logout-btn:hover {
+.logout-btn:hover {
   background-color: #ef4444;
   color: #ffffff;
   border-color: #ef4444;
 }
 
-.collateral-req-content {
+/* ---------- Main content ---------- */
+
+.admin-command-center-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 45px 30px 60px;
-  max-width: 1100px;
   box-sizing: border-box;
+  min-width: 0;
 }
 
-.collateral-req-header h1 {
+.admin-command-center-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.admin-command-center-header h1 {
   color: #ffffff;
   font-size: 26px;
   font-weight: 700;
-  margin: 0 0 8px;
+  margin-bottom: 8px;
 }
 
-.collateral-req-header p {
+.admin-command-center-header p {
   color: #94a3b8;
   font-size: 14px;
-  margin: 0 0 30px;
 }
 
+/* ---------- Collateral Requests specific ---------- */
+
 .collateral-header-row {
+  width: 100%;
+  max-width: 1100px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -172,7 +201,9 @@
   border: 1px solid #263449;
   border-radius: 8px;
   padding: 10px 14px;
-  width: 320px;
+  min-width: 260px;
+  max-width: 320px;
+  flex: 1;
 }
 
 .collateral-search input {
@@ -191,7 +222,12 @@
 
 .collateral-search-icon {
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.ledger-table-wrapper {
+  width: 100%;
+  max-width: 1100px;
 }
 
 .ledger-table {
@@ -332,6 +368,9 @@
   border-radius: 6px;
   cursor: pointer;
   transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-manage:hover {
@@ -342,6 +381,8 @@
 .collateral-loading,
 .collateral-error,
 .collateral-empty {
+  width: 100%;
+  max-width: 1100px;
   padding: 40px 20px;
   text-align: center;
   color: #64748b;
@@ -349,6 +390,10 @@
   border: 1px solid #263449;
   border-radius: 10px;
   font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .collateral-error {
@@ -356,108 +401,105 @@
 }
 
 .collateral-count {
+  width: 100%;
+  max-width: 1100px;
   margin-top: 16px;
   font-size: 12px;
   color: #64748b;
 }
 
-.collateral-card {
-  background-color: #1e293b;
-  border: 1px solid #263449;
-  border-radius: 10px;
-  padding: 18px 22px;
+/* ---------- Responsiveness ---------- */
+
+@media (max-width: 992px) {
+  .admin-sidebar {
+    width: 190px;
+    padding: 24px 16px;
+  }
 }
 
-.collateral-main {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.collateral-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  background-color: #16213a;
-  border: 1px solid #334155;
-  color: #38bdf8;
-  font-weight: 700;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.collateral-user-name {
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.collateral-user-email {
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 8px;
-}
-
-.collateral-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.collateral-date {
-  font-size: 12px;
-  color: #64748b;
-}
-
-@media (max-width: 860px) {
-  .collateral-req-page {
+@media (max-width: 768px) {
+  .admin-command-center-page {
     flex-direction: column;
   }
 
-  .collateral-req-sidebar {
+  .admin-sidebar {
     width: 100%;
     height: auto;
-    position: relative;
-    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-wrap: nowrap;
     align-items: center;
     text-align: left;
+    padding: 12px 16px;
+    gap: 14px;
+    overflow-x: auto;
   }
 
-  .collateral-req-nav,
-  .collateral-req-quote {
+  .admin-sidebar-top {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    flex-shrink: 0;
+    gap: 10px;
+  }
+
+  .admin-avatar {
+    margin-bottom: 0;
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .admin-sidebar h4,
+  .admin-sidebar p {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .admin-sidebar p {
     display: none;
   }
 
-  .collateral-req-avatar {
+  .admin-role-tag {
     margin-bottom: 0;
-    width: 44px;
-    height: 44px;
+    flex-shrink: 0;
   }
 
-  .collateral-req-sidebar h4,
-  .collateral-req-sidebar p,
-  .collateral-req-role-tag {
+  .sidebar-nav {
+    flex-direction: row;
+    width: auto;
     margin-bottom: 0;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
-  .collateral-req-logout-btn {
+  .sidebar-nav-link {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .sidebar-quote {
+    display: none;
+  }
+
+  .logout-btn {
     width: auto;
     margin-top: 0;
+    flex-shrink: 0;
+    padding: 8px 12px;
   }
 
-  .collateral-req-content {
-    padding: 24px 16px;
+  .admin-command-center-content {
+    padding: 30px 16px 40px;
   }
 
   .collateral-search {
-    width: 100%;
+    max-width: none;
   }
 
   .ledger-table thead {
@@ -480,5 +522,16 @@
   .ledger-table td {
     padding: 6px 0;
     border-bottom: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-command-center-header h1 {
+    font-size: 21px;
+  }
+
+  .collateral-header-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

@@ -13,11 +13,11 @@ function AdminManageUsers() {
   });
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house" },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear" },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation" },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar" },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag" },
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
@@ -127,31 +127,30 @@ function AdminManageUsers() {
       .toUpperCase() || "?";
 
   const adminInitials = admin.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "AD";
 
   return (
     <div className="admin-command-center-page">
-
       <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
         <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
             <Link
               to={item.path}
               key={item.id}
-              className={`sidebar-nav-link ${
-                location.pathname === item.path ? "active" : ""
-              }`}
+              className={`sidebar-nav-link ${location.pathname === item.path ? "active" : ""}`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
@@ -161,12 +160,11 @@ function AdminManageUsers() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout 🚪
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
       <main className="admin-command-center-content">
-
         <div className="admin-command-center-header">
           <h1>Manage Users</h1>
           <p>View, search, and update user account status.</p>
@@ -174,7 +172,7 @@ function AdminManageUsers() {
 
         <div className="manage-users-header-row">
           <div className="manage-users-search">
-            <span className="manage-users-search-icon">🔍</span>
+            <i className="fa-solid fa-magnifying-glass manage-users-search-icon"></i>
             <input
               type="text"
               placeholder="Search by username..."
@@ -198,7 +196,9 @@ function AdminManageUsers() {
 
         <div className="manage-users-table-wrapper">
           {loading ? (
-            <div className="manage-users-loading">Loading users... 🛡️</div>
+            <div className="manage-users-loading">
+              <i className="fa-solid fa-spinner fa-spin"></i> Loading users…
+            </div>
           ) : error ? (
             <div className="manage-users-error">{error}</div>
           ) : filteredUsers.length === 0 ? (
@@ -220,10 +220,10 @@ function AdminManageUsers() {
                       <div className="user-cell">
                         <div className="user-cell-avatar">
                           {user.profileImage ? (
-                            <img 
-                              src={user.profileImage} 
-                              alt={user.name} 
-                              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                            <img
+                              src={user.profileImage}
+                              alt={user.name}
+                              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                             />
                           ) : (
                             getInitials(user.name)
@@ -276,9 +276,7 @@ function AdminManageUsers() {
             Showing {filteredUsers.length} of {users.length} users
           </p>
         )}
-
       </main>
-
     </div>
   );
 }

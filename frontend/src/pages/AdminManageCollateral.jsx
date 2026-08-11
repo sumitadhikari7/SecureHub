@@ -34,11 +34,11 @@ function AdminManageCollateral() {
   }, [navigate]);
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house" },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear" },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation" },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar" },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag" },
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
@@ -104,10 +104,10 @@ function AdminManageCollateral() {
       .toUpperCase() || "?";
 
   const adminInitials = admin.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "AD";
 
   const handleApprove = async (e) => {
     e.preventDefault();
@@ -169,49 +169,53 @@ function AdminManageCollateral() {
   const transactionIdValue = request?.transactionId ?? request?.transaction_id ?? "—";
 
   return (
-    <div className="collateral-mgmt-page">
-      <aside className="collateral-mgmt-sidebar">
-        <div className="collateral-mgmt-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="collateral-mgmt-role-tag">{admin.role}</span>
+    <div className="admin-command-center-page">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
-        <nav className="collateral-mgmt-nav">
+        <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
             <Link
               to={item.path}
               key={item.id}
-              className={`collateral-mgmt-nav-link ${
+              className={`sidebar-nav-link ${
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="collateral-mgmt-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="collateral-mgmt-quote">
+        <div className="sidebar-quote">
           <p>"{motivationalQuote}"</p>
         </div>
 
-        <button className="collateral-mgmt-logout-btn" onClick={handleLogout}>
-          Logout 🚪
+        <button className="logout-btn" onClick={handleLogout}>
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
-      <main className="collateral-mgmt-content">
-        <div className="collateral-mgmt-header">
+      <main className="admin-command-center-content">
+        <div className="admin-command-center-header">
           <h1>Manage Collateral</h1>
           <p>Review the request and confirm the decision.</p>
         </div>
 
         <Link to="/admin-collateral-requests" className="manage-back-link">
-          ← Back to Collateral Requests
+          <i className="fa-solid fa-arrow-left"></i> Back to Collateral Requests
         </Link>
 
         {loading ? (
-          <div className="manage-loading">Loading request details…</div>
+          <div className="manage-loading">
+            <i className="fa-solid fa-spinner fa-spin"></i> Loading request details…
+          </div>
         ) : !id ? (
           <div className="manage-empty">
             Pick a request from{" "}
@@ -230,7 +234,7 @@ function AdminManageCollateral() {
             {submitted === "approved"
               ? `Balance updated for ${request.name}.`
               : `Request from ${request.name} was rejected.`}
-            <Link to="/admin-collateral-requests" className="collateral-mgmt-action-btn manage-return">
+            <Link to="/admin-collateral-requests" className="manage-action-btn manage-return">
               Return to Collateral Requests
             </Link>
           </div>
@@ -310,7 +314,7 @@ function AdminManageCollateral() {
               <div className="manage-actions">
                 <button
                   type="button"
-                  className="collateral-mgmt-action-btn reject"
+                  className="manage-action-btn reject"
                   onClick={handleReject}
                   disabled={submitting}
                 >
@@ -318,7 +322,7 @@ function AdminManageCollateral() {
                 </button>
                 <button
                   type="submit"
-                  className="collateral-mgmt-action-btn approve"
+                  className="manage-action-btn approve"
                   disabled={submitting}
                 >
                   {submitting ? "Saving…" : "Approve & Update Balance"}

@@ -14,11 +14,11 @@ function AdminCollateralRequests() {
   });
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house" },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear" },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation" },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar" },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag" },
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
@@ -115,54 +115,56 @@ function AdminCollateralRequests() {
       .toUpperCase() || "?";
 
   const adminInitials = admin.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "AD";
 
   return (
-    <div className="collateral-req-page">
+    <div className="admin-command-center-page">
 
-      <aside className="collateral-req-sidebar">
-        <div className="collateral-req-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="collateral-req-role-tag">{admin.role}</span>
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
-        <nav className="collateral-req-nav">
+        <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
             <Link
               to={item.path}
               key={item.id}
-              className={`collateral-req-nav-link ${
+              className={`sidebar-nav-link ${
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="collateral-req-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="collateral-req-quote">
+        <div className="sidebar-quote">
           <p>"{motivationalQuote}"</p>
         </div>
 
-        <button className="collateral-req-logout-btn" onClick={handleLogout}>
-          Logout 🚪
+        <button className="logout-btn" onClick={handleLogout}>
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
-      <main className="collateral-req-content">
+      <main className="admin-command-center-content">
 
-        <div className="collateral-req-header">
+        <div className="admin-command-center-header">
           <h1>Collateral Requests</h1>
           <p>Review pending collateral submissions from users.</p>
         </div>
 
         <div className="collateral-header-row">
           <div className="collateral-search">
-            <span className="collateral-search-icon">🔍</span>
+            <i className="fa-solid fa-magnifying-glass collateral-search-icon"></i>
             <input
               type="text"
               placeholder="Search by username..."
@@ -173,57 +175,61 @@ function AdminCollateralRequests() {
         </div>
 
         {loading ? (
-          <div className="collateral-loading">Loading collateral requests…</div>
+          <div className="collateral-loading">
+            <i className="fa-solid fa-spinner fa-spin"></i> Loading collateral requests…
+          </div>
         ) : error ? (
           <div className="collateral-error">{error}</div>
         ) : filteredRequests.length === 0 ? (
           <div className="collateral-empty">No collateral requests found.</div>
         ) : (
-          <table className="ledger-table">
-            <thead>
-              <tr>
-                <th>Requester</th>
-                <th>Amount</th>
-                <th>Submitted</th>
-                <th>Status</th>
-                <th aria-hidden="true"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRequests.map((request) => (
-                <tr key={request.id}>
-                  <td>
-                    <div className="requester-cell">
-                      <div className="avatar-sm">{getInitials(request.name)}</div>
-                      <div>
-                        <div className="requester-name">{request.name}</div>
-                        <div className="requester-email">{request.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="mono">
-                    {request.amount ? `$${request.amount}` : "—"}
-                  </td>
-                  <td className="mono">
-                    {request.submittedAt
-                      ? new Date(request.submittedAt).toLocaleDateString()
-                      : "—"}
-                  </td>
-                  <td>
-                    <span className="stamp stamp-pending">Pending</span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-manage"
-                      onClick={() => handleManage(request)}
-                    >
-                      Manage →
-                    </button>
-                  </td>
+          <div className="ledger-table-wrapper">
+            <table className="ledger-table">
+              <thead>
+                <tr>
+                  <th>Requester</th>
+                  <th>Amount</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th aria-hidden="true"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredRequests.map((request) => (
+                  <tr key={request.id}>
+                    <td>
+                      <div className="requester-cell">
+                        <div className="avatar-sm">{getInitials(request.name)}</div>
+                        <div>
+                          <div className="requester-name">{request.name}</div>
+                          <div className="requester-email">{request.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="mono">
+                      {request.amount ? `$${request.amount}` : "—"}
+                    </td>
+                    <td className="mono">
+                      {request.submittedAt
+                        ? new Date(request.submittedAt).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td>
+                      <span className="stamp stamp-pending">Pending</span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn-manage"
+                        onClick={() => handleManage(request)}
+                      >
+                        Manage <i className="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {!loading && !error && (

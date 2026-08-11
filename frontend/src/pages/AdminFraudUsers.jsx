@@ -13,11 +13,11 @@ function AdminFraudUsers() {
   });
 
   const dashboardItems = [
-    { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
-    { id: 2, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 3, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 4, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 5, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house" },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear" },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation" },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar" },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag" },
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
@@ -116,10 +116,12 @@ function AdminFraudUsers() {
     <div className="admin-command-center-page">
 
       <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
         <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
@@ -130,8 +132,8 @@ function AdminFraudUsers() {
                 location.pathname === item.path ? "active" : ""
               }`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
@@ -141,7 +143,7 @@ function AdminFraudUsers() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout 🚪
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
@@ -154,7 +156,7 @@ function AdminFraudUsers() {
 
         <div className="flagged-header-row">
           <div className="flagged-search">
-            <span className="flagged-search-icon">🔍</span>
+            <i className="fa-solid fa-magnifying-glass flagged-search-icon"></i>
             <input
               type="text"
               placeholder="Search by username..."
@@ -165,7 +167,9 @@ function AdminFraudUsers() {
         </div>
 
         {loading ? (
-          <div className="flagged-loading">Loading flagged accounts…</div>
+          <div className="flagged-loading">
+            <i className="fa-solid fa-spinner fa-spin"></i> Loading flagged accounts…
+          </div>
         ) : error ? (
           <div className="flagged-error">{error}</div>
         ) : filteredUsers.length === 0 ? (

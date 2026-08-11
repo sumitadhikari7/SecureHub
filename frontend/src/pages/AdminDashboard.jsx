@@ -6,21 +6,20 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [admin, setAdmin] = useState({ 
-    name: "Admin", 
-    email: "securehub.certified@gmail.com", 
-    role: "Super Admin" 
+  const [admin, setAdmin] = useState({
+    name: "Admin",
+    email: "securehub.certified@gmail.com",
+    role: "Super Admin"
   });
-  const [statsData, setStatsData] = useState({ 
-    totalUsers: 0, 
-    flaggedAccounts: 0, 
-    pendingCollateral: 0, 
-    activeAuctions: 0 
+  const [statsData, setStatsData] = useState({
+    totalUsers: 0,
+    flaggedAccounts: 0,
+    pendingCollateral: 0,
+    activeAuctions: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch real admin info
     fetch("http://localhost:5000/api/admin/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Unauthorized");
@@ -37,7 +36,6 @@ function AdminDashboard() {
         navigate("/admin-authentication");
       });
 
-    // 2. Fetch stats
     fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error("Unauthorized");
@@ -58,17 +56,18 @@ function AdminDashboard() {
   };
 
   const stats = [
-    { id: 1, label: "Total Users", value: statsData.totalUsers.toLocaleString() },
-    { id: 2, label: "Flagged Accounts", value: statsData.flaggedAccounts, alert: statsData.flaggedAccounts > 0 },
-    { id: 3, label: "Pending Collateral", value: statsData.pendingCollateral, alert: statsData.pendingCollateral > 0 },
-    { id: 4, label: "Active Auctions", value: statsData.activeAuctions.toLocaleString() }
+    { id: 1, label: "Total Users", value: statsData.totalUsers.toLocaleString(), icon: "fa-solid fa-users" },
+    { id: 2, label: "Flagged Accounts", value: statsData.flaggedAccounts, alert: statsData.flaggedAccounts > 0, icon: "fa-solid fa-flag" },
+    { id: 3, label: "Pending Collateral", value: statsData.pendingCollateral, alert: statsData.pendingCollateral > 0, icon: "fa-solid fa-hourglass-half" },
+    { id: 4, label: "Active Auctions", value: statsData.activeAuctions.toLocaleString(), icon: "fa-solid fa-gavel" }
   ];
 
   const dashboardItems = [
-    { id: 1, icon: "👥", title: "Manage Users", path: "/admin-manage-users" },
-    { id: 2, icon: "🚨", title: "Fraud Accounts", path: "/admin-fraud-accounts" },
-    { id: 3, icon: "📋", title: "Collateral Requests", path: "/admin-collateral-requests" },
-    { id: 4, icon: "🗂️", title: "Manage Collateral", path: "/admin-manage-collateral" }
+    { id: 1, title: "Home", path: "/admin-dashboard", icon: "fa-solid fa-house", desc: "Overview of platform activity." },
+    { id: 2, title: "Manage Users", path: "/admin-manage-users", icon: "fa-solid fa-user-gear", desc: "View, edit, and moderate accounts." },
+    { id: 3, title: "Fraud Accounts", path: "/admin-fraud-accounts", icon: "fa-solid fa-triangle-exclamation", desc: "Review suspicious bidding activity." },
+    { id: 4, title: "Collateral Requests", path: "/admin-collateral-requests", icon: "fa-solid fa-hand-holding-dollar", desc: "Approve or reject collateral claims." },
+    { id: 6, title: "Flagged Accounts", path: "/admin-flagged-accounts", icon: "fa-solid fa-flag", desc: "Accounts reported by other users." }
   ];
 
   const motivationalQuote = "Trust is built in drops and lost in buckets. Every review you make protects it.";
@@ -82,10 +81,12 @@ function AdminDashboard() {
   return (
     <div className="admin-command-center-page">
       <aside className="admin-sidebar">
-        <div className="admin-avatar">{adminInitials}</div>
-        <h4>{admin.name}</h4>
-        <p>{admin.email}</p>
-        <span className="admin-role-tag">{admin.role}</span>
+        <div className="admin-sidebar-top">
+          <div className="admin-avatar">{adminInitials}</div>
+          <h4>{admin.name}</h4>
+          <p>{admin.email}</p>
+          <span className="admin-role-tag">{admin.role}</span>
+        </div>
 
         <nav className="sidebar-nav">
           {dashboardItems.map((item) => (
@@ -94,8 +95,8 @@ function AdminDashboard() {
               key={item.id}
               className={`sidebar-nav-link ${location.pathname === item.path ? "active" : ""}`}
             >
-              <span className="sidebar-nav-icon">{item.icon}</span>
-              {item.title}
+              <i className={`sidebar-nav-icon ${item.icon}`}></i>
+              <span>{item.title}</span>
             </Link>
           ))}
         </nav>
@@ -105,7 +106,7 @@ function AdminDashboard() {
         </div>
 
         <button className="logout-btn" onClick={handleLogout}>
-          Logout 🚪
+          <i className="fa-solid fa-right-from-bracket"></i> Logout
         </button>
       </aside>
 
@@ -116,14 +117,19 @@ function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div className="command-center-loading">Loading dashboard data…</div>
+          <div className="command-center-loading">
+            <i className="fa-solid fa-spinner fa-spin"></i> Loading dashboard data…
+          </div>
         ) : (
           <>
             <div className="admin-command-center-stats-grid">
               {stats.map((stat) => (
                 <div className={`stat-card ${stat.alert ? "stat-alert" : ""}`} key={stat.id}>
-                  <p className="stat-label">{stat.label}</p>
-                  <h2 className="stat-value">{stat.value}</h2>
+                  <div className="stat-icon"><i className={stat.icon}></i></div>
+                  <div className="stat-text">
+                    <p className="stat-label">{stat.label}</p>
+                    <h2 className="stat-value">{stat.value}</h2>
+                  </div>
                 </div>
               ))}
             </div>
@@ -131,8 +137,9 @@ function AdminDashboard() {
             <div className="admin-command-center-grid">
               {dashboardItems.map((item) => (
                 <Link to={item.path} className="admin-card" key={item.id}>
-                  <div className="admin-card-icon">{item.icon}</div>
+                  <div className="admin-card-icon"><i className={item.icon}></i></div>
                   <h3>{item.title}</h3>
+                  <p>{item.desc}</p>
                 </Link>
               ))}
             </div>
