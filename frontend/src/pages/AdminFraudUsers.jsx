@@ -150,7 +150,7 @@ function AdminFraudUsers() {
       <main className="admin-command-center-content">
 
         <div className="admin-command-center-header">
-          <h1>Flagged Accounts</h1>
+          <h1>Fraud Accounts</h1>
           <p>Review suspended accounts and restore access when resolved.</p>
         </div>
 
