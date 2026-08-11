@@ -5,11 +5,11 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { socket } from "../socket";
 import { Link } from "react-router-dom";
+// 1. IMPORT TOAST AND TOASTER
+import toast, { Toaster } from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Normalizes "YYYY-MM-DD HH:mm:ss" strings (and Date objects) into real Date objects.
-// Used everywhere a start/end time is parsed so filtering and the timer badge agree.
 function toDate(value) {
   if (!value) return null;
   const normalized =
@@ -72,9 +72,6 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
   };
 
   const [state, setState] = useState(calculateTimeLeft());
-
-  // Tracks the last phase we reported so onEnded/onStarted only fire once,
-  // on the transition into that phase — not on every tick afterward.
   const prevPhaseRef = useRef(state.phase);
 
   useEffect(() => {
@@ -182,11 +179,7 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      await fetchDashboardData();
-    };
-
-    loadDashboard();
+    fetchDashboardData();
   }, []);
 
   useEffect(() => {
@@ -197,10 +190,7 @@ function Dashboard() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -228,40 +218,34 @@ function Dashboard() {
     };
 
     socket.on("bidUpdate", handleBidUpdate);
-
     return () => socket.off("bidUpdate", handleBidUpdate);
   }, []);
 
-    useEffect(() => {
-      const handleNewAuction = (auction) => {
-        setFeaturedAuctions((prev) => [auction, ...prev]);
+  useEffect(() => {
+    const handleNewAuction = (auction) => {
+      setFeaturedAuctions((prev) => [auction, ...prev]);
 
-        setBidInputs((prev) => ({
-          ...prev,
-          [auction.auction_id]: Number(
-            auction.starting_price ?? auction.startingPrice ?? 0
-          ),
-        }));
+      setBidInputs((prev) => ({
+        ...prev,
+        [auction.auction_id]: Number(
+          auction.starting_price ?? auction.startingPrice ?? 0
+        ),
+      }));
 
-        const start = toDate(auction.start_time ?? auction.startTime);
-        if (start && start > new Date()) {
-          setUpcomingAuctions((prev) => new Set(prev).add(auction.auction_id));
-        }
+      const start = toDate(auction.start_time ?? auction.startTime);
+      if (start && start > new Date()) {
+        setUpcomingAuctions((prev) => new Set(prev).add(auction.auction_id));
+      }
 
-        socket.emit("joinAuction", auction.auction_id);
-      };
+      socket.emit("joinAuction", auction.auction_id);
+    };
 
     socket.on("newAuction", handleNewAuction);
-
     return () => socket.off("newAuction", handleNewAuction);
   }, []);
   
   const markAuctionEnded = (id) => {
-    setEndedAuctions((prev) => {
-      const updated = new Set(prev);
-      updated.add(id);
-      return updated;
-    });
+    setEndedAuctions((prev) => new Set(prev).add(id));
   };
 
   const markAuctionStarted = (id) => {
@@ -281,7 +265,6 @@ function Dashboard() {
 
   const handleDecrement = (id, min) => {
     const value = Number(bidInputs[id]) || 0;
-
     if (value > min) {
       setBidInputs((prev) => ({
         ...prev,
@@ -301,8 +284,6 @@ function Dashboard() {
     const raw = bidInputs[id];
     const value = raw === "" || raw === undefined ? NaN : Number(raw);
 
-    // Covers both "typed a value below min" and "left the field empty" —
-    // either way, snap back to the minimum instead of leaving NaN in state.
     if (isNaN(value) || value < min) {
       setBidInputs((prev) => ({
         ...prev,
@@ -311,21 +292,22 @@ function Dashboard() {
     }
   };
 
+  // 2. REPLACED ALL ALERT() CALLS WITH TOAST NOTIFICATIONS
   const handlePlaceBid = async (id, title, minAllowed) => {
     if (upcomingAuctions.has(id)) {
-      alert("⚠️ Bidding has not started yet!");
+      toast.error("Bidding has not started yet!");
       return;
     }
 
     if (endedAuctions.has(id)) {
-      alert("⚠️ Auction already ended.");
+      toast.error("Auction already ended.");
       return;
     }
 
     const amount = Number(bidInputs[id]);
 
     if (isNaN(amount) || amount < minAllowed) {
-      alert(`Minimum bid is $${minAllowed}`);
+      toast.error(`Minimum bid is $${minAllowed}`);
       return;
     }
 
@@ -345,12 +327,11 @@ function Dashboard() {
         throw new Error(data.message || data.error || "Bid failed");
       }
 
-      alert(`🎉 Bid of $${amount} placed on ${title}`);
-
+      toast.success(`Bid of $${amount} placed on ${title}`);
       fetchDashboardData();
     } catch (error) {
       console.error(error);
-      alert(`❌ ${error.message}`);
+      toast.error(`${error.message}`);
     }
   };
 
@@ -364,9 +345,7 @@ function Dashboard() {
     );
 
     const minBid = currentPrice > 0 ? currentPrice + 1 : startingPrice;
-
     const seller = auction.seller_name ?? auction.sellerName ?? "Unknown";
-
     const inputValue = bidInputs[auction.auction_id] ?? minBid;
 
     const isEnded = endedAuctions.has(auction.auction_id);
@@ -396,13 +375,10 @@ function Dashboard() {
         <div className="auction-info-box">
           <div className="title-row">
             <h3>{auction.title}</h3>
-
             <span className="seller-tag">👤 {seller}</span>
           </div>
 
-          <p
-            className={`auction-description ${expanded ? "expanded" : ""}`}
-          >
+          <p className={`auction-description ${expanded ? "expanded" : ""}`}>
             {auction.description || "No description available."}
           </p>
 
@@ -414,7 +390,6 @@ function Dashboard() {
               <span>
                 {currentPrice > 0 ? "Current High Bid" : "Starting Price"}
               </span>
-
               <strong>${currentPrice || startingPrice}</strong>
             </div>
 
@@ -471,25 +446,20 @@ function Dashboard() {
   const activeAuctions = featuredAuctions.filter((a) => {
     const start = toDate(a.start_time);
     const end = toDate(a.end_time);
-
     return start && end && start <= now && end > now;
   });
 
   const upcomingAuctionsList = featuredAuctions.filter((a) => {
     const start = toDate(a.start_time);
     if (!start) return false;
-
     const minutes = (start - now) / (1000 * 60);
-
     return minutes > 0 && minutes <= 30;
   });
 
   const recentlyEndedAuctions = featuredAuctions.filter((a) => {
     const end = toDate(a.end_time);
     if (!end) return false;
-
     const minutes = (now - end) / (1000 * 60);
-
     return minutes >= 0 && minutes <= 30;
   });
 
@@ -504,6 +474,18 @@ function Dashboard() {
   return (
     <>
       <Navbar />
+
+      {/* 3. TOASTER CONTAINER PLACED HERE */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+        }} 
+      />
 
       <div className="dashboard">
         <section className="hero">
