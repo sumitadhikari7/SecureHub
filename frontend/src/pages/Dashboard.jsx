@@ -105,10 +105,10 @@ function AuctionTimer({ startTime, endTime, onEnded, onStarted }) {
       }`}
     >
       {isEnded
-        ? "⚠️ Ended"
+        ? "Ended"
         : isUpcoming
-        ? `⏳ Starts In: ${state.text}`
-        : `⚡ ${state.text}`}
+        ? `Starts In: ${state.text}`
+        : `${state.text}`}
     </div>
   );
 }
@@ -433,7 +433,7 @@ function Dashboard() {
                 ? "Auction Ended"
                 : isUpcoming
                 ? "Locked Until Start"
-                : "Submit Bid 🔨"}
+                : "Submit Bid"}
             </button>
           </div>
         </div>

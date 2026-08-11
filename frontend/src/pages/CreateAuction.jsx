@@ -208,7 +208,7 @@ function CreateAuction() {
               onClick={handleStartNow}
               className="start-now-btn"
             >
-              ⚡ Start Now
+              Start Now
             </button>
 
             <input

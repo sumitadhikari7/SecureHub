@@ -477,7 +477,7 @@
 }
 
 .modal-content::before {
-    content: "LIVE AUCTION 🔨";
+    content: "LIVE AUCTION";
     display: block;
     background-color: #d97706;
     color: white;
