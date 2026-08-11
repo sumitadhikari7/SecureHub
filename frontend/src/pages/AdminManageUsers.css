@@ -1,3 +1,170 @@
+.admin-command-center-page {
+  min-height: 100vh;
+  background-color: #0f172a;
+  font-family: "Segoe UI", sans-serif;
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background-color: #16213a;
+  border-right: 1px solid #263449;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.admin-avatar {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.admin-sidebar h4 {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.admin-sidebar p {
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.admin-role-tag {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  white-space: nowrap;
+  margin-bottom: 26px;
+}
+
+.sidebar-nav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 26px;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 6px;
+  text-align: left;
+  transition: 0.2s;
+}
+
+.sidebar-nav-icon {
+  font-size: 15px;
+}
+
+.sidebar-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.sidebar-nav-link.active {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.sidebar-quote {
+  background-color: #1e293b;
+  border-left: 3px solid #38bdf8;
+  border-radius: 6px;
+  padding: 14px 14px;
+  margin-bottom: 26px;
+}
+
+.sidebar-quote p {
+  color: #94a3b8;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0;
+  text-align: left;
+}
+
+.logout-btn {
+  width: 100%;
+  background-color: transparent;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: auto;
+}
+
+.logout-btn:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.admin-command-center-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 45px 30px 60px;
+  box-sizing: border-box;
+}
+
+.admin-command-center-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.admin-command-center-header h1 {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.admin-command-center-header p {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Manage Users specific */
+
 .manage-users-header-row {
   width: 100%;
   max-width: 1000px;
@@ -244,6 +411,44 @@
 }
 
 @media (max-width: 768px) {
+  .admin-command-center-page {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+  }
+
+  .sidebar-nav,
+  .sidebar-quote {
+    display: none;
+  }
+
+  .admin-avatar {
+    margin-bottom: 0;
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-sidebar h4,
+  .admin-sidebar p,
+  .admin-role-tag {
+    margin-bottom: 0;
+  }
+
+  .logout-btn {
+    width: auto;
+    margin-top: 0;
+  }
+
   .manage-users-table thead {
     display: none;
   }

@@ -112,8 +112,6 @@ function AdminFraudUsers() {
 
   const adminInitials = getInitials(admin.name);
 
-  if (loading) return <div style={{ color: "white", padding: "2rem" }}>Loading Command Center... 🛡️</div>;
-
   return (
     <div className="admin-command-center-page">
 
@@ -166,7 +164,9 @@ function AdminFraudUsers() {
           </div>
         </div>
 
-        {error ? (
+        {loading ? (
+          <div className="flagged-loading">Loading flagged accounts…</div>
+        ) : error ? (
           <div className="flagged-error">{error}</div>
         ) : filteredUsers.length === 0 ? (
           <div className="flagged-empty">No flagged accounts found.</div>

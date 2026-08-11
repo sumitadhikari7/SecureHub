@@ -1,4 +1,7 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable preserve-caught-error */
 import { useState, useEffect } from "react";
+import {socket} from "../socket";
 import Navbar from "../components/Navbar";
 import "./MyCollateral.css";
 import Footer from "../components/Footer";
@@ -117,6 +120,34 @@ function MyCollateral() {
 
     fetchBalance();
   }, [activeTab]);
+
+    useEffect(() => {
+    const fetchUserId = async () => {
+      const res = await fetch("http://localhost:5000/api/me", {
+        credentials: "include",
+      });
+      const user = await res.json();
+      if (user.userId) {
+        socket.emit("join-user-room", user.userId);
+
+      socket.on("collateral-updated", (data) => {
+        const newRemaining = Number(data.newBalance);
+
+        setAccount((prev) => ({
+          totalCollateral: newRemaining + prev.used,
+          used: prev.used,
+          remaining: newRemaining,
+        }));
+      });
+      }
+    };
+
+    fetchUserId();
+
+    return () => {
+      socket.off("collateral-updated");
+    };
+  }, []);
 
   // ==========================================
   // SEND COLLATERAL REQUEST

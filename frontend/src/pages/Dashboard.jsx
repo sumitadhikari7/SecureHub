@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useRef } from "react";
 import "./Dashboard.css";
 import Navbar from "../components/Navbar";
@@ -229,6 +230,30 @@ function Dashboard() {
     socket.on("bidUpdate", handleBidUpdate);
 
     return () => socket.off("bidUpdate", handleBidUpdate);
+  }, []);
+
+    useEffect(() => {
+      const handleNewAuction = (auction) => {
+        setFeaturedAuctions((prev) => [auction, ...prev]);
+
+        setBidInputs((prev) => ({
+          ...prev,
+          [auction.auction_id]: Number(
+            auction.starting_price ?? auction.startingPrice ?? 0
+          ),
+        }));
+
+        const start = toDate(auction.start_time ?? auction.startTime);
+        if (start && start > new Date()) {
+          setUpcomingAuctions((prev) => new Set(prev).add(auction.auction_id));
+        }
+
+        socket.emit("joinAuction", auction.auction_id);
+      };
+
+    socket.on("newAuction", handleNewAuction);
+
+    return () => socket.off("newAuction", handleNewAuction);
   }, []);
   
   const markAuctionEnded = (id) => {

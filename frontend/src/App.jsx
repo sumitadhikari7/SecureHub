@@ -16,6 +16,7 @@ import AdminFraudUsers from "./pages/AdminFraudUsers";
 import AdminCollateralRequests from "./pages/AdminCollateralRequest";
 import AdminManageCollateral from "./pages/AdminManageCollateral";
 
+import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -28,14 +29,22 @@ function App() {
       <Route path="/browse-auction" element={<BrowseAuction />} />
       <Route path="/about" element={<About />} />
       <Route path="/auction/:id" element={<AuctionDetails />} />
-      <Route path="/admin-authentication" element={<AdminAuthentication />} />
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/admin-manage-users" element={<AdminManageUsers />} />
-      <Route path="/admin-fraud-accounts" element={<AdminFraudUsers />} />
-      <Route path="/admin-collateral-requests" element={<AdminCollateralRequests />} />
-     <Route path="/admin-manage-collateral" element={<AdminManageCollateral />} />
-     <Route path="/admin-manage-collateral/:id" element={<AdminManageCollateral />} />
 
+      {/* Admin auth stays outside the layout — it has its own look
+          before the admin session exists */}
+      <Route path="/admin-authentication" element={<AdminAuthentication />} />
+
+      {/* Admin section — AdminLayout stays mounted across all of these,
+          so the dark background never unmounts and there's no white
+          flash when navigating between admin pages */}
+      <Route element={<AdminLayout />}>
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-manage-users" element={<AdminManageUsers />} />
+        <Route path="/admin-fraud-accounts" element={<AdminFraudUsers />} />
+        <Route path="/admin-collateral-requests" element={<AdminCollateralRequests />} />
+        <Route path="/admin-manage-collateral" element={<AdminManageCollateral />} />
+        <Route path="/admin-manage-collateral/:id" element={<AdminManageCollateral />} />
+      </Route>
 
       {/* Protected Routes */}
       <Route
@@ -82,7 +91,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-     
+
 
     </Routes>
   );

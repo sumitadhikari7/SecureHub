@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {socket} from "../socket";
 import Navbar from "../components/Navbar";
 import './AuctionDetails.css';
 
@@ -53,6 +54,39 @@ function AuctionDetails() {
       ignore = true;
     };
   }, [id]);
+
+  useEffect(() => {
+  if (!id) return;
+
+  socket.emit("joinAuction", id);
+
+  return () => {
+    socket.emit("leaveAuction", id);
+  };
+}, [id]);
+
+useEffect(() => {
+  const handleBidUpdate = (payload) => {
+    if (String(payload.auction_id) !== String(id)) return;
+
+    setAuction((prev) =>
+      prev
+        ? {
+            ...prev,
+            current_price: payload.current_price ?? prev.current_price,
+            highest_bidder: payload.highest_bidder ?? prev.highest_bidder,
+            highest_bid: payload.highest_bid ?? prev.highest_bid,
+            bid_count: payload.bid_count ?? prev.bid_count,
+            recent_bids: payload.recent_bids ?? prev.recent_bids,
+          }
+        : prev
+    );
+  };
+
+  socket.on("bidUpdate", handleBidUpdate);
+
+  return () => socket.off("bidUpdate", handleBidUpdate);
+}, [id]);
 
   // Re-fetches after a successful bid so highest bid / bidder / history all update together.
   // Not guarded by `ignore` since it's user-triggered, not tied to the mount/id lifecycle above.
