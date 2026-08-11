@@ -33,7 +33,7 @@ app.use(
 
 app.use(express.json());
 
-// Session Middleware
+// Session Middleware (regular users)
 const sessionMiddleware = session({
   store: new pgSession({
     pool: pool,
@@ -42,6 +42,7 @@ const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || "super-secret-key",
   resave: false,
   saveUninitialized: false,
+  name: 'connect.sid',
   cookie: {
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
@@ -49,7 +50,38 @@ const sessionMiddleware = session({
   },
 });
 
-app.use(sessionMiddleware);
+// Session Middleware (admin) — deliberately a SEPARATE cookie/session store
+// from the user one above. Previously both admin and user requests shared
+// one session middleware/cookie, so req.session.userId and req.session.adminId
+// could end up living in the same session row (e.g. testing both in one
+// browser). Force-logging-out a suspended user called session.destroy() on
+// that shared row, which wiped the admin's adminId too. Giving admin its own
+// cookie name means the two are physically separate rows in the `session`
+// table — destroying one can never affect the other.
+const adminSessionMiddleware = session({
+  store: new pgSession({
+    pool: pool,
+    tableName: 'session',
+  }),
+  secret: process.env.ADMIN_SESSION_SECRET || process.env.SESSION_SECRET || "super-secret-admin-key",
+  resave: false,
+  saveUninitialized: false,
+  name: 'admin.sid',
+  cookie: {
+    maxAge: 8 * 60 * 60 * 1000, // 8h — admin sessions are shorter-lived by default
+    httpOnly: true,
+    secure: false,
+  },
+});
+
+// Route by path: /api/admin/* gets its own session entirely; everything
+// else (including the socket.io handshake) gets the regular user session.
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/admin')) {
+    return adminSessionMiddleware(req, res, next);
+  }
+  return sessionMiddleware(req, res, next);
+});
 
 // Auth check
 app.get("/api/me", (req, res) => {
@@ -367,21 +399,21 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     console.log("Risk score:", fraudScore);
     console.log(
       "Prediction:",
-      fraudScore >= 0.5 ? "Fraudulent" : "Normal"
+      fraudScore >= 0.65 ? "Fraudulent" : "Normal"
     );
     console.log("=================================");
 
     // 🚨 THIS IS THE IF STATEMENT
-    if (fraudScore >= 0.5) {
-      const prediction = "Fraudulent";
+    if (fraudScore >= 0.65) {
+  const prediction = "Fraudulent";
 
-      await pool.query(
-        `INSERT INTO fraud_alerts
-          (user_id, auction_id, risk_score, prediction, alert_status, created_at)
-         VALUES
-          ($1, $2, $3, $4, 'pending', NOW())`,
-        [bidderId, id, fraudScore, prediction]
-      );
+  await pool.query(
+    `INSERT INTO fraud_alerts
+      (user_id, auction_id, risk_score, prediction, alert_status, features, created_at)
+     VALUES
+      ($1, $2, $3, $4, 'pending', $5, NOW())`,
+    [bidderId, id, fraudScore, prediction, JSON.stringify(features)]
+  );
 
       const io = req.app.get('io');
 
@@ -563,10 +595,46 @@ const io = new Server(server, {
 
 io.engine.use(sessionMiddleware);
 
+// 🔌 Track every live socket per logged-in user_id, so we can force-kick a
+// user off the app the instant an admin suspends them, and so the
+// auto-unsuspend sweep can notify anyone waiting on the login page.
+const userSockets = new Map(); // userId -> Set<socket>
+
+function trackSocket(userId, socket) {
+  if (!userId) return;
+  if (!userSockets.has(userId)) userSockets.set(userId, new Set());
+  userSockets.get(userId).add(socket);
+}
+
+function untrackSocket(userId, socket) {
+  if (!userId || !userSockets.has(userId)) return;
+  const set = userSockets.get(userId);
+  set.delete(socket);
+  if (set.size === 0) userSockets.delete(userId);
+}
+
+// Force-kick a user off every live connection and kill their server session,
+// so a suspension takes effect immediately even if they're mid-session.
+function forceLogoutUser(userId, payload) {
+  const sockets = userSockets.get(userId);
+  if (!sockets) return;
+  for (const s of sockets) {
+    s.emit('forceLogout', payload);
+    if (s.request?.session) {
+      s.request.session.destroy(() => {});
+    }
+    s.disconnect(true);
+  }
+  userSockets.delete(userId);
+}
+
 io.on('connection', (socket) => {
+  const userId = socket.request.session?.userId;
+  trackSocket(userId, socket);
+
   socket.on('joinAuction', (auctionId) => {
-    const userId = socket.request.session?.userId;
-    if (!userId) {
+    const uid = socket.request.session?.userId;
+    if (!uid) {
       socket.emit('authError', 'Please log in to follow this auction live.');
       return;
     }
@@ -576,7 +644,48 @@ io.on('connection', (socket) => {
   socket.on('leaveAuction', (auctionId) => {
     socket.leave(`auction:${auctionId}`);
   });
+
+  socket.on('disconnect', () => {
+    untrackSocket(userId, socket);
+  });
 });
+
+// 🔓 AUTO-UNSUSPEND SWEEP
+// Suspensions carry an explicit suspended_until timestamp (NULL means
+// permanent and is never touched here). This sweep runs continuously in the
+// background and lifts any suspension whose time has passed, independent of
+// whether the user ever visits the login page again.
+const SUSPENSION_SWEEP_INTERVAL_MS = 15 * 1000; // 15s: fine for demo (1 min) and real (days) durations
+
+async function sweepExpiredSuspensions() {
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET status = 'active',
+           suspended_at = NULL,
+           suspended_until = NULL,
+           suspension_reason = NULL
+       WHERE status = 'suspended'
+         AND suspended_until IS NOT NULL
+         AND suspended_until <= NOW()
+       RETURNING user_id`
+    );
+
+    for (const row of result.rows) {
+      console.log(`🔓 Auto-reactivated user ${row.user_id} (suspension expired)`);
+      const sockets = userSockets.get(row.user_id);
+      if (sockets) {
+        for (const s of sockets) s.emit('accountReactivated');
+      }
+    }
+  } catch (err) {
+    console.error("Suspension sweep error:", err.message);
+  }
+}
+
+setInterval(sweepExpiredSuspensions, SUSPENSION_SWEEP_INTERVAL_MS);
+// Run once at boot too, in case suspensions expired while the server was down.
+sweepExpiredSuspensions();
 
 // 🛡️ ADMIN LOGIN
 app.post('/api/admin/login', async (req, res) => {
@@ -628,7 +737,7 @@ app.get('/api/admin/stats', async (req, res) => {
 app.post('/api/admin/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ message: "Logout failed" });
-    res.clearCookie('connect.sid');
+    res.clearCookie('admin.sid'); // admin now has its own cookie, not connect.sid
     res.json({ success: true, message: "Logged out successfully" });
   });
 });
@@ -663,6 +772,22 @@ app.patch('/api/admin/users/:id/status', async (req, res) => {
        WHERE user_id = $3`,
       [status, status, id]
     );
+
+    // Manual status changes made outside the fraud-alert flow don't carry a
+    // duration/reason, so make sure stale suspension metadata never lingers
+    // once an admin flips someone back to active by hand.
+    if (status !== 'suspended') {
+      await pool.query(
+        `UPDATE users SET suspended_until = NULL, suspension_reason = NULL WHERE user_id = $1`,
+        [id]
+      );
+    } else {
+      forceLogoutUser(Number(id), {
+        reason: "Suspended by admin.",
+        suspendedUntil: null,
+      });
+    }
+
     res.json({ message: `User status updated to ${status} successfully! 🎉` });
   } catch (err) {
     console.error("Update status error:", err);
@@ -696,7 +821,7 @@ app.patch('/api/admin/users/:id/unsuspend', async (req, res) => {
 
   try {
     await pool.query(
-      `UPDATE users SET status = 'active', suspended_at = NULL WHERE user_id = $1`,
+      `UPDATE users SET status = 'active', suspended_at = NULL, suspended_until = NULL, suspension_reason = NULL WHERE user_id = $1`,
       [id]
     );
     res.json({ message: "User unsuspended successfully! 🎉" });
@@ -925,13 +1050,9 @@ app.get('/api/admin/me', async (req, res) => {
   }
 });
 
-// 🕵️ GET FRAUD ALERTS
+// 🕵️ GET FRAUD ALERTS — now includes suspension state for review UI
 app.get('/api/admin/fraud-alerts', async (req, res) => {
-  if (!req.session.adminId) {
-    return res.status(401).json({
-      message: "Unauthorized 🛑"
-    });
-  }
+  if (!req.session.adminId) return res.status(401).json({ message: "Unauthorized 🛑" });
 
   try {
     const result = await pool.query(
@@ -940,6 +1061,8 @@ app.get('/api/admin/fraud-alerts', async (req, res) => {
           f.user_id AS "userId",
           u.full_name AS name,
           u.email,
+          u.status AS "userStatus",
+          u.suspended_until AS "suspendedUntil",
 
           f.auction_id AS "auctionId",
           a.title AS "auctionTitle",
@@ -947,31 +1070,166 @@ app.get('/api/admin/fraud-alerts', async (req, res) => {
           f.risk_score AS "riskScore",
           f.prediction,
           f.alert_status AS "alertStatus",
+          f.action_taken AS "actionTaken",
+          f.suspension_duration_days AS "suspensionDurationDays",
+          u.suspension_reason AS "suspensionReason",
 
           f.reviewed_by AS "reviewedBy",
+          admin.full_name AS "reviewedByName",
           f.reviewed_at AS "reviewedAt",
           f.created_at AS "createdAt"
 
        FROM fraud_alerts f
-
-       JOIN users u
-         ON u.user_id = f.user_id
-
-       LEFT JOIN auctions a
-         ON a.auction_id = f.auction_id
-
+       JOIN users u ON u.user_id = f.user_id
+       LEFT JOIN auctions a ON a.auction_id = f.auction_id
+       LEFT JOIN admin ON admin.admin_id = f.reviewed_by
        ORDER BY f.created_at DESC
        LIMIT 100`
     );
-
     res.json(result.rows);
-
   } catch (err) {
     console.error("Fetch fraud alerts error:", err);
+    res.status(500).json({ message: "Failed to load fraud alerts" });
+  }
+});
 
-    res.status(500).json({
-      message: "Failed to load fraud alerts"
+// 🚫 SUSPEND ACCOUNT FROM A FRAUD ALERT
+app.post('/api/admin/fraud-alerts/:id/suspend', async (req, res) => {
+  if (!req.session.adminId) return res.status(401).json({ message: "Unauthorized 🛑" });
+
+  const { id } = req.params;
+  const { durationValue, durationUnit, permanent, reason } = req.body;
+
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ message: "A review reason is required." });
+  }
+
+  const allowedUnits = ["minutes", "days"];
+  if (!permanent) {
+    if (!allowedUnits.includes(durationUnit) || !Number.isFinite(Number(durationValue)) || Number(durationValue) <= 0) {
+      return res.status(400).json({ message: "Provide a valid suspension length or mark it permanent." });
+    }
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const alertResult = await client.query(
+      `SELECT alert_id, user_id, alert_status FROM fraud_alerts WHERE alert_id = $1 FOR UPDATE`,
+      [id]
+    );
+    if (alertResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ message: "Fraud alert not found" });
+    }
+
+    const alert = alertResult.rows[0];
+    if (alert.alert_status !== "pending") {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ message: `This alert has already been ${alert.alert_status}.` });
+    }
+
+    const value = permanent ? null : Math.floor(Number(durationValue));
+    const unit = permanent ? null : durationUnit; // 'minutes' | 'days'
+
+    // suspension_duration_days stays in days for reporting; minutes-based
+    // demo suspensions are recorded as 0 there (their real length lives in
+    // suspended_until, which is unit-correct regardless).
+    const durationDaysForRecord = unit === "days" ? value : unit === "minutes" ? 0 : null;
+
+    // FIX: the previous version cast $2 to ::int and then tried `::int || ' '`,
+    // which is not a valid Postgres operator (integer || text does not
+    // exist) and silently rolled back this ENTIRE transaction on every call
+    // — nothing was ever actually saved. Casting both sides to ::text fixes it.
+    const updatedUser = await client.query(
+      `UPDATE users
+       SET status = 'suspended',
+           suspended_at = NOW(),
+           suspended_until = CASE
+             WHEN $1::text IS NULL THEN NULL
+             ELSE NOW() + ($2::text || ' ' || $1::text)::interval
+           END,
+           suspension_reason = $3
+       WHERE user_id = $4
+       RETURNING suspended_until`,
+      [unit, value, reason.trim(), alert.user_id]
+    );
+
+    const updatedAlert = await client.query(
+      `UPDATE fraud_alerts
+       SET alert_status = 'reviewed',
+           action_taken = 'suspended',
+           suspension_duration_days = $1,
+           reviewed_by = $2,
+           reviewed_at = NOW()
+       WHERE alert_id = $3
+       RETURNING alert_id AS id, alert_status AS "alertStatus", action_taken AS "actionTaken",
+                 suspension_duration_days AS "suspensionDurationDays", reviewed_by AS "reviewedBy",
+                 reviewed_at AS "reviewedAt"`,
+      [durationDaysForRecord, req.session.adminId, id]
+    );
+
+    await client.query("COMMIT");
+
+    const suspendedUntil = updatedUser.rows[0].suspended_until; // real DB value, not a client-side guess
+
+    // Kick the user off immediately if they're currently logged in anywhere.
+    forceLogoutUser(alert.user_id, {
+      reason: reason.trim(),
+      suspendedUntil,
     });
+
+    res.json({
+      success: true,
+      message: "Account suspended and alert marked as reviewed.",
+      alert: {
+        ...updatedAlert.rows[0],
+        suspendedUntil,
+        suspensionReason: reason.trim(),
+      },
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Suspend from fraud alert error:", err);
+    res.status(500).json({ message: "Failed to suspend account" });
+  } finally {
+    client.release();
+  }
+});
+
+// ✅ DISMISS A FRAUD ALERT (reviewed as false positive, no action taken)
+app.post('/api/admin/fraud-alerts/:id/dismiss', async (req, res) => {
+  if (!req.session.adminId) return res.status(401).json({ message: "Unauthorized 🛑" });
+
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE fraud_alerts
+       SET alert_status = 'dismissed',
+           action_taken = 'dismissed',
+           reviewed_by = $1,
+           reviewed_at = NOW()
+       WHERE alert_id = $2 AND alert_status = 'pending'
+       RETURNING alert_id AS id, alert_status AS "alertStatus", action_taken AS "actionTaken",
+                 reviewed_by AS "reviewedBy", reviewed_at AS "reviewedAt"`,
+      [req.session.adminId, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Pending fraud alert not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Alert dismissed as false positive.",
+      alert: { ...result.rows[0], suspensionReason: reason || null },
+    });
+  } catch (err) {
+    console.error("Dismiss fraud alert error:", err);
+    res.status(500).json({ message: "Failed to dismiss alert" });
   }
 });
 
