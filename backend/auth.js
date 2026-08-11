@@ -29,6 +29,33 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Shared helper: builds the { suspended, reason, suspendedUntil } payload
+// used any time we need to tell someone why/how-long they're suspended.
+// If their suspension has actually expired already, lift it right here
+// instead of making them wait for the background sweep - this is just a
+// safety net for the exact moment the sweep hasn't caught up yet.
+async function checkAndSyncSuspension(user) {
+  if (user.status !== 'suspended') {
+    return { suspended: false };
+  }
+
+  if (user.suspended_until && new Date(user.suspended_until) <= new Date()) {
+    await pool.query(
+      `UPDATE users
+       SET status = 'active', suspended_at = NULL, suspended_until = NULL, suspension_reason = NULL
+       WHERE user_id = $1`,
+      [user.user_id]
+    );
+    return { suspended: false };
+  }
+
+  return {
+    suspended: true,
+    reason: user.suspension_reason || "No reason provided.",
+    suspendedUntil: user.suspended_until || null, // null = permanent
+  };
+}
+
 // REGISTER
 router.post('/register', async (req, res) => {
   const {
@@ -96,9 +123,15 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    if (user.status !== 'active') {
+    // Surface exactly why/how-long they're suspended, so the login form can
+    // show it in the alert box instead of a generic "inactive" message.
+    const suspensionInfo = await checkAndSyncSuspension(user);
+    if (suspensionInfo.suspended) {
       return res.status(403).json({
-        message: 'Account is suspended or inactive.',
+        message: 'Your account has been suspended.',
+        suspended: true,
+        reason: suspensionInfo.reason,
+        suspendedUntil: suspensionInfo.suspendedUntil, // null = permanent
       });
     }
 
@@ -168,7 +201,9 @@ router.post('/verify-otp', async (req, res) => {
         full_name,
         email,
         phone_number,
-        status
+        status,
+        suspended_until,
+        suspension_reason
       FROM users
       WHERE email = $1
       `,
@@ -183,6 +218,19 @@ router.post('/verify-otp', async (req, res) => {
 
     const user = userResult.rows[0];
 
+    // Re-check suspension here too: the OTP step can happen minutes after
+    // step 1, so it's possible an admin suspended them, or a short demo
+    // suspension started and ended, in the gap between the two steps.
+    const suspensionInfo = await checkAndSyncSuspension(user);
+    if (suspensionInfo.suspended) {
+      return res.status(403).json({
+        message: 'Your account has been suspended.',
+        suspended: true,
+        reason: suspensionInfo.reason,
+        suspendedUntil: suspensionInfo.suspendedUntil,
+      });
+    }
+
     req.session.userId = user.user_id;
     req.session.userName = user.full_name;
     req.session.email = user.email;
@@ -195,8 +243,8 @@ router.post('/verify-otp', async (req, res) => {
         email: user.email,
         phone_number: user.phone_number,
         status: user.status,
-  },
-});
+      },
+    });
   } catch (err) {
     console.error('OTP Verification Error:', err);
 
@@ -209,13 +257,20 @@ router.post('/verify-otp', async (req, res) => {
 router.get("/me", (req, res) => {
   console.log("SESSION:", req.session);
 
-  if (!req.session.user) {
+  // FIX: this used to check req.session.user, which is never set anywhere
+  // in the login flow (the session stores userId/userName/email directly) -
+  // so this endpoint returned 401 for every logged-in user, always.
+  if (!req.session.userId) {
     return res.status(401).json({
       error: "Not logged in",
     });
   }
 
-  res.json(req.session.user);
+  res.json({
+    user_id: req.session.userId,
+    full_name: req.session.userName,
+    email: req.session.email,
+  });
 });
 
 // In auth.js
