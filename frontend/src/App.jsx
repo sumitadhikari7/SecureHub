@@ -18,6 +18,7 @@ import AdminManageCollateral from "./pages/AdminManageCollateral";
 
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminFraudAccounts from "./pages/AdminFraudAccounts";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
         <Route path="/admin-collateral-requests" element={<AdminCollateralRequests />} />
         <Route path="/admin-manage-collateral" element={<AdminManageCollateral />} />
         <Route path="/admin-manage-collateral/:id" element={<AdminManageCollateral />} />
+        <Route path="/admin-flagged-accounts/" element={<AdminFraudAccounts />} />
       </Route>
 
       {/* Protected Routes */}
