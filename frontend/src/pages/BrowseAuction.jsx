@@ -4,13 +4,16 @@ import { socket } from "../socket";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "./BrowseAuction.css";
-// 1. IMPORT TOAST & TOASTER
 import toast, { Toaster } from "react-hot-toast";
 
 function BrowseAuction() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Search & Filter State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const navigate = useNavigate();
 
@@ -38,7 +41,6 @@ function BrowseAuction() {
       } catch (err) {
         console.error("Failed to fetch auctions:", err);
         setError("Couldn't load auctions. Please try again later.");
-        // Non-blocking toast error notification
         toast.error("Failed to load auctions");
       } finally {
         setLoading(false);
@@ -90,7 +92,6 @@ function BrowseAuction() {
         return [withStatus, ...prev];
       });
 
-      // Show real-time popup toast when a new auction goes live!
       toast.success(`New Auction Created: ${auction.title}`);
 
       socket.emit("joinAuction", withStatus.auction_id);
@@ -107,7 +108,20 @@ function BrowseAuction() {
     navigate(`/auction/${auctionId}`);
   };
 
-  const sortedAuctions = [...auctions].sort((a, b) => {
+  // Filter auctions based on Search input and Status dropdown selection
+  const filteredAuctions = auctions.filter((item) => {
+    const matchesSearch = item.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || item.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort filtered auctions (active/upcoming first, ended last)
+  const sortedAuctions = [...filteredAuctions].sort((a, b) => {
     const now = new Date();
     const aEnded = new Date(a.end_time) <= now;
     const bEnded = new Date(b.end_time) <= now;
@@ -122,7 +136,6 @@ function BrowseAuction() {
     <>
       <Navbar />
 
-      {/* 2. RENDER TOASTER NOTIFICATION CONTAINER */}
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -141,13 +154,23 @@ function BrowseAuction() {
           <p>Discover active auctions and place your bids.</p>
         </div>
 
+        {/* SEARCH & STATUS FILTER ROW */}
         <div className="search-filter">
-          <input type="text" placeholder="Search auctions..." />
+          <input
+            type="text"
+            placeholder="Search auctions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-          <select>
-            <option>All Categories</option>
-            <option>Electronics</option>
-            <option>Vehicles</option>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Live Auctions</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="ended">Ended</option>
           </select>
         </div>
 
@@ -156,7 +179,7 @@ function BrowseAuction() {
             <p>Loading auctions...</p>
           ) : error ? (
             <p className="error-message">{error}</p>
-          ) : auctions.length > 0 ? (
+          ) : sortedAuctions.length > 0 ? (
             sortedAuctions.map((item) => (
               <div className="auction-card" key={item.auction_id}>
                 <img
@@ -197,7 +220,7 @@ function BrowseAuction() {
               </div>
             ))
           ) : (
-            <p>No auctions found.</p>
+            <p>No auctions match your search criteria.</p>
           )}
         </div>
       </div>
