@@ -496,7 +496,7 @@ function Dashboard() {
 
         {fetchError && (
           <div className="fetch-error-banner">
-            ⚠️ {fetchError}! User may not be logged in or session expired. Please log in again.
+            {fetchError}! User may not be logged in or session expired. Please log in again.
           </div>
         )}
 
@@ -518,7 +518,7 @@ function Dashboard() {
         </section>
 
         <section className="featured">
-          <h2>🔥 Active Auctions</h2>
+          <h2>Active Auctions</h2>
 
           <div className="auction-container">
             {activeAuctions.length ? (
@@ -536,7 +536,7 @@ function Dashboard() {
             )}
           </div>
 
-          <h2>⏳ Starting Soon (30 Minutes)</h2>
+          <h2>Starting Soon (30 Minutes)</h2>
 
           <div className="auction-container">
             {upcomingAuctionsList.map((a) => (
@@ -550,7 +550,7 @@ function Dashboard() {
             ))}
           </div>
 
-          <h2>📁 Recently Ended</h2>
+          <h2>Recently Ended</h2>
 
           <div className="auction-container">
             {recentlyEndedAuctions.map((a) => (
