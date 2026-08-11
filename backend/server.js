@@ -393,11 +393,39 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Fetch what's needed for the live "Recent Bids" panel on AuctionDetails.jsx
+    // — same shape GET /api/auctions/:id already returns, so the socket
+    // payload and the initial page-load fetch always agree on field names.
+    const bidderNameResult = await pool.query(
+      `SELECT full_name FROM users WHERE user_id = $1`,
+      [bidderId]
+    );
+    const bidderName = bidderNameResult.rows[0]?.full_name ?? "Unknown";
+
+    const historyResult = await pool.query(
+      `SELECT b.bid_amount, b.bid_time, u.full_name AS bidder_name
+       FROM bids b
+       JOIN users u ON u.user_id = b.bidder_id
+       WHERE b.auction_id = $1
+       ORDER BY b.bid_time DESC
+       LIMIT 5`,
+      [id]
+    );
+
+    const bidCountResult = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM bids WHERE auction_id = $1`,
+      [id]
+    );
+
     const io = req.app.get('io');
     io.to(`auction:${id}`).emit('bidUpdate', {
       auction_id: Number(id),
       current_price: bidAmount,
       bidder_id: bidderId,
+      highest_bidder: bidderName,
+      highest_bid: bidAmount,
+      bid_count: bidCountResult.rows[0].count,
+      recent_bids: historyResult.rows,
     });
 
     res.json({ success: true, newBalance: newBalanceResult.rows[0].balance });
@@ -405,7 +433,6 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     // Fraud scoring happens AFTER the response is sent and outside the bid
     // transaction — a scoring error or slow query here must never block or
     // fail an actual bid. See fraudDetection.js for the model and caveats.
-    // Fraud scoring happens AFTER the response is sent
 (async () => {
   try {
     const features = await computeFeatures(pool, {
@@ -430,7 +457,6 @@ app.post('/api/auctions/:id/bid', async (req, res) => {
     );
     console.log("=================================");
 
-    // 🚨 THIS IS THE IF STATEMENT
     if (fraudScore >= 0.65) {
   const prediction = "Fraudulent";
 
@@ -889,6 +915,7 @@ app.post('/api/user/collateral-request', async (req, res) => {
       [req.session.userId, amount, currentBalance, transactionId]
     );
 
+    // Broadcast to admin dashboards so a new request appears live, no refresh.
     const io = req.app.get('io');
     io.emit('newCollateralRequest', {
       id: insertResult.rows[0].request_id,
@@ -1026,8 +1053,10 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
 
     const io = req.app.get('io');
 
+    // Tell admin dashboards this request is resolved (drop it from pending list).
     io.emit('collateralRequestResolved', { id: Number(id), status: 'approved' });
 
+    // Tell the specific user's live sockets their balance changed.
     const sockets = userSockets.get(userId);
     if (sockets) {
       for (const s of sockets) {
@@ -1050,7 +1079,6 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
   }
 });
 
-
 // ❌ REJECT COLLATERAL REQUEST
 app.post('/api/admin/collateral-requests/:id/reject', async (req, res) => {
   if (!req.session.adminId) {
@@ -1072,6 +1100,9 @@ app.post('/api/admin/collateral-requests/:id/reject', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Pending collateral request not found" });
     }
+
+    const io = req.app.get('io');
+    io.emit('collateralRequestResolved', { id: Number(id), status: 'rejected' });
 
     res.json({ success: true, message: "Collateral request rejected successfully!" });
   } catch (err) {
@@ -1191,10 +1222,6 @@ app.post('/api/admin/fraud-alerts/:id/suspend', async (req, res) => {
     // suspended_until, which is unit-correct regardless).
     const durationDaysForRecord = unit === "days" ? value : unit === "minutes" ? 0 : null;
 
-    // FIX: the previous version cast $2 to ::int and then tried `::int || ' '`,
-    // which is not a valid Postgres operator (integer || text does not
-    // exist) and silently rolled back this ENTIRE transaction on every call
-    // — nothing was ever actually saved. Casting both sides to ::text fixes it.
     const updatedUser = await client.query(
       `UPDATE users
        SET status = 'suspended',
