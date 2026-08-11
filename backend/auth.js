@@ -29,11 +29,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Shared helper: builds the { suspended, reason, suspendedUntil } payload
-// used any time we need to tell someone why/how-long they're suspended.
-// If their suspension has actually expired already, lift it right here
-// instead of making them wait for the background sweep - this is just a
-// safety net for the exact moment the sweep hasn't caught up yet.
+// Shared helper: builds suspension payload / auto-lifts expired suspensions
 async function checkAndSyncSuspension(user) {
   if (user.status !== 'suspended') {
     return { suspended: false };
@@ -56,7 +52,76 @@ async function checkAndSyncSuspension(user) {
   };
 }
 
-// REGISTER
+// -----------------------------------------------------------------------------
+// 1. REGISTER STEP 1: Send OTP to Registration Email
+// -----------------------------------------------------------------------------
+router.post('/register-otp', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email address is required.' });
+  }
+
+  try {
+    // Check if email already exists in Postgres
+    const userCheck = await pool.query(
+      'SELECT user_id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userCheck.rows.length > 0) {
+      return res.status(400).json({
+        message: 'Email is already registered.',
+      });
+    }
+
+    // Generate 6-digit OTP
+    const generatedOtp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    // Store in Redis with prefix `register_otp:` for 5 minutes (300 secs)
+    await redisClient.setEx(
+      `register_otp:${email}`,
+      300,
+      generatedOtp
+    );
+
+    // Send Mail
+    await transporter.sendMail({
+      from: `"SecureHub" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: 'SecureHub Registration Verification Code',
+      html: `
+        <div style="font-family:sans-serif;padding:20px;border:1px solid #eee;border-radius:5px;">
+          <h2>SecureHub Account Registration</h2>
+          <p>Your verification code is:</p>
+          <h1 style="color:#4F46E5;letter-spacing:2px;font-size:32px;">
+            ${generatedOtp}
+          </h1>
+          <p style="font-size:12px;color:#666;">
+            This code is valid for 5 minutes.
+          </p>
+        </div>
+      `,
+    });
+
+    console.log(`Registration OTP sent to ${email}`);
+
+    res.status(200).json({
+      message: 'Verification code sent to your email.',
+    });
+  } catch (err) {
+    console.error('Register OTP Error:', err);
+    res.status(500).json({
+      message: 'Failed to send verification email.',
+    });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// 2. REGISTER STEP 2: Verify OTP & Create User Record
+// -----------------------------------------------------------------------------
 router.post('/register', async (req, res) => {
   const {
     firstName,
@@ -65,13 +130,28 @@ router.post('/register', async (req, res) => {
     phone,
     email,
     password,
+    otp,
   } = req.body;
 
-  const fullName = [firstName, middleName, lastName]
-    .filter(Boolean)
-    .join(' ');
+  if (!otp) {
+    return res.status(400).json({ message: 'Verification OTP is required.' });
+  }
 
   try {
+    // Retrieve OTP from Redis
+    const storedOtp = await redisClient.get(`register_otp:${email}`);
+
+    if (!storedOtp || storedOtp !== otp) {
+      return res.status(400).json({
+        message: 'Invalid or expired verification code.',
+      });
+    }
+
+    const fullName = [firstName, middleName, lastName]
+      .filter(Boolean)
+      .join(' ');
+
+    // Insert user into PostgreSQL
     await pool.query(
       `
       INSERT INTO users
@@ -81,8 +161,11 @@ router.post('/register', async (req, res) => {
       [fullName, email, phone, password]
     );
 
+    // Delete registration OTP after successful user insertion
+    await redisClient.del(`register_otp:${email}`);
+
     res.status(201).json({
-      message: 'Registration Successful! Switch to login.',
+      message: 'Account verified & created successfully!',
     });
   } catch (err) {
     if (err.code === '23505') {
@@ -91,15 +174,17 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    console.error(err);
+    console.error('Registration Insertion Error:', err);
 
     res.status(500).json({
-      message: 'Server database failure.',
+      message: 'Server database failure during account creation.',
     });
   }
 });
 
-// LOGIN STEP 1 - Verify Password & Send OTP
+// -----------------------------------------------------------------------------
+// 3. LOGIN STEP 1 - Verify Password & Send OTP
+// -----------------------------------------------------------------------------
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -123,15 +208,13 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Surface exactly why/how-long they're suspended, so the login form can
-    // show it in the alert box instead of a generic "inactive" message.
     const suspensionInfo = await checkAndSyncSuspension(user);
     if (suspensionInfo.suspended) {
       return res.status(403).json({
         message: 'Your account has been suspended.',
         suspended: true,
         reason: suspensionInfo.reason,
-        suspendedUntil: suspensionInfo.suspendedUntil, // null = permanent
+        suspendedUntil: suspensionInfo.suspendedUntil,
       });
     }
 
@@ -146,9 +229,9 @@ router.post('/login', async (req, res) => {
     );
 
     await transporter.sendMail({
-      from: `"SecureHub Security 🛡️" <${process.env.GMAIL_USER}>`,
+      from: `"SecureHub" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: 'SecureHub Access Code 🛡️',
+      subject: 'SecureHub Access Code',
       html: `
         <div style="font-family:sans-serif;padding:20px;border:1px solid #eee;border-radius:5px;">
           <h2>SecureHub Verification</h2>
@@ -163,7 +246,7 @@ router.post('/login', async (req, res) => {
       `,
     });
 
-    console.log(`OTP sent to ${email}`);
+    console.log(`Login OTP sent to ${email}`);
 
     res.status(200).json({
       message: 'Verification code sent to email.',
@@ -177,7 +260,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// LOGIN STEP 2 - Verify OTP
+// -----------------------------------------------------------------------------
+// 4. LOGIN STEP 2 - Verify OTP
+// -----------------------------------------------------------------------------
 router.post('/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
@@ -190,10 +275,8 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Delete OTP after successful verification
     await redisClient.del(`otp:${email}`);
 
-    // Fetch logged-in user
     const userResult = await pool.query(
       `
       SELECT
@@ -218,9 +301,6 @@ router.post('/verify-otp', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Re-check suspension here too: the OTP step can happen minutes after
-    // step 1, so it's possible an admin suspended them, or a short demo
-    // suspension started and ended, in the gap between the two steps.
     const suspensionInfo = await checkAndSyncSuspension(user);
     if (suspensionInfo.suspended) {
       return res.status(403).json({
@@ -254,12 +334,10 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
+// -----------------------------------------------------------------------------
+// 5. SESSION & AUTH HELPERS
+// -----------------------------------------------------------------------------
 router.get("/me", (req, res) => {
-  console.log("SESSION:", req.session);
-
-  // FIX: this used to check req.session.user, which is never set anywhere
-  // in the login flow (the session stores userId/userName/email directly) -
-  // so this endpoint returned 401 for every logged-in user, always.
   if (!req.session.userId) {
     return res.status(401).json({
       error: "Not logged in",
@@ -273,11 +351,10 @@ router.get("/me", (req, res) => {
   });
 });
 
-// In auth.js
 router.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ error: "Could not log out" });
-    res.clearCookie('connect.sid'); // Clear the session cookie
+    res.clearCookie('connect.sid');
     res.json({ message: "Logged out" });
   });
 });
