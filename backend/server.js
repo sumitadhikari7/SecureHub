@@ -175,11 +175,38 @@ app.post('/api/auctions', upload.single('image'), async (req, res) => {
   const imageUrl = req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null;
   try {
     const newAuction = await pool.query(
-      `INSERT INTO auctions (seller_id, title, description, starting_price, current_price, start_time, end_time, image_url) VALUES ($1, $2, $3, $4, $4, $5, $6, $7) RETURNING *`,
+      `INSERT INTO auctions (seller_id, title, description, starting_price, current_price, start_time, end_time, image_url)
+       VALUES ($1, $2, $3, $4, $4, $5, $6, $7)
+       RETURNING *`,
       [req.session.userId, title, description, parseFloat(startingPrice), startTime, endTime, imageUrl]
     );
-    res.status(201).json(newAuction.rows[0]);
+
+    const auction = newAuction.rows[0];
+
+    // Grab the seller's display name so the broadcast payload matches what
+    // GET /api/dashboard already sends (a.* joined with u.full_name AS seller_name).
+    const sellerResult = await pool.query(
+      `SELECT full_name FROM users WHERE user_id = $1`,
+      [req.session.userId]
+    );
+    const sellerName = sellerResult.rows[0]?.full_name ?? "Unknown";
+
+    const io = req.app.get('io');
+    io.emit('newAuction', {
+      auction_id: auction.auction_id,
+      title: auction.title,
+      description: auction.description,
+      starting_price: auction.starting_price,
+      current_price: auction.current_price,
+      start_time: auction.start_time,
+      end_time: auction.end_time,
+      image_url: auction.image_url,
+      seller_name: sellerName,
+    });
+
+    res.status(201).json(auction);
   } catch (err) {
+    console.error("Create auction error:", err);
     res.status(500).json({ message: "Database failure" });
   }
 });
@@ -845,7 +872,7 @@ app.post('/api/user/collateral-request', async (req, res) => {
 
   try {
     const userResult = await pool.query(
-      `SELECT balance FROM users WHERE user_id = $1`,
+      `SELECT balance, full_name, email FROM users WHERE user_id = $1`,
       [req.session.userId]
     );
 
@@ -855,11 +882,25 @@ app.post('/api/user/collateral-request', async (req, res) => {
 
     const currentBalance = userResult.rows[0].balance || 0;
 
-    await pool.query(
+    const insertResult = await pool.query(
       `INSERT INTO collateral_requests (user_id, amount, current_balance, transaction_id, status, created_at)
-       VALUES ($1, $2, $3, $4, 'pending', NOW())`,
+       VALUES ($1, $2, $3, $4, 'pending', NOW())
+       RETURNING request_id, created_at`,
       [req.session.userId, amount, currentBalance, transactionId]
     );
+
+    const io = req.app.get('io');
+    io.emit('newCollateralRequest', {
+      id: insertResult.rows[0].request_id,
+      userId: req.session.userId,
+      name: userResult.rows[0].full_name,
+      email: userResult.rows[0].email,
+      amount: Number(amount),
+      currentBalance: Number(currentBalance),
+      transactionId,
+      status: 'pending',
+      submittedAt: insertResult.rows[0].created_at,
+    });
 
     return res.setHeader('Content-Type', 'application/json').status(201).json({ message: "Collateral request submitted successfully! 🚀" });
   } catch (err) {
@@ -983,6 +1024,17 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
 
     await client.query("COMMIT");
 
+    const io = req.app.get('io');
+
+    io.emit('collateralRequestResolved', { id: Number(id), status: 'approved' });
+
+    const sockets = userSockets.get(userId);
+    if (sockets) {
+      for (const s of sockets) {
+        s.emit('collateral-updated', { newBalance, amountAdded: amount });
+      }
+    }
+
     res.json({
       success: true,
       message: "Collateral approved successfully! 🎉",
@@ -997,6 +1049,7 @@ app.post('/api/admin/collateral-requests/:id/approve', async (req, res) => {
     client.release();
   }
 });
+
 
 // ❌ REJECT COLLATERAL REQUEST
 app.post('/api/admin/collateral-requests/:id/reject', async (req, res) => {
