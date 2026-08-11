@@ -524,6 +524,12 @@ io.on('connection', (socket) => {
   if (adminId) {
     socket.join('adminRoom');
   }
+
+  socket.on('join-user-room', (userId) => {
+    if (!userId) return;
+    socket.join(`user:${userId}`);
+  });
+
   socket.on('joinAuction', (auctionId) => {
     const userId = socket.request.session?.userId;
     socket.join(`user:${userId}`);
