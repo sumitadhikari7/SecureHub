@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./CreateAuction.css";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+// 1. IMPORT TOAST & TOASTER
+import toast, { Toaster } from "react-hot-toast";
 
 function CreateAuction() {
-  
+  const navigate = useNavigate();
 
   const getLocalISOString = (date) => {
     const tzOffset = date.getTimezoneOffset() * 60000;
@@ -21,8 +24,6 @@ function CreateAuction() {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +34,6 @@ function CreateAuction() {
     }));
   };
 
-
   const handleStartNow = () => {
     const now = new Date();
 
@@ -41,8 +41,8 @@ function CreateAuction() {
       ...prev,
       startTime: getLocalISOString(now),
     }));
+    toast("Set start time to right now!", { icon: "⚡" });
   };
-
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -53,92 +53,58 @@ function CreateAuction() {
     setImagePreview(URL.createObjectURL(file));
   };
 
-
+  // 2. REPLACED ERROR/SUCCESS STATE MESSAGES WITH TOAST POPUPS
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setErrorMsg("");
-    setSuccessMsg("");
-
     const now = new Date();
-
     const startVal = new Date(formData.startTime);
     const endVal = new Date(formData.endTime);
 
-
     const oneMinuteAgo = new Date(now.getTime() - 60000);
 
-
     if (startVal < oneMinuteAgo) {
-      setErrorMsg("Error: The start time cannot be in the past!");
+      toast.error("The start time cannot be in the past!");
       return;
     }
-
 
     if (endVal < now) {
-      setErrorMsg("Error: The end time must be in the future!");
+      toast.error("The end time must be in the future!");
       return;
     }
-
 
     if (endVal <= startVal) {
-      setErrorMsg(
-        "Error: The end time must be after the start time!"
-      );
+      toast.error("The end time must be after the start time!");
       return;
     }
 
-
     const dataToSend = new FormData();
-
     dataToSend.append("title", formData.title);
     dataToSend.append("description", formData.description);
-    dataToSend.append(
-      "startingPrice",
-      formData.startingPrice
-    );
-    dataToSend.append(
-      "startTime",
-      formData.startTime
-    );
-    dataToSend.append(
-      "endTime",
-      formData.endTime
-    );
-
+    dataToSend.append("startingPrice", formData.startingPrice);
+    dataToSend.append("startTime", formData.startTime);
+    dataToSend.append("endTime", formData.endTime);
 
     if (imageFile) {
       dataToSend.append("image", imageFile);
     }
 
-
     try {
-
-      const response = await fetch(
-        "http://localhost:5000/api/auctions",
-        {
-          method: "POST",
-          credentials: "include",
-          body: dataToSend,
-        }
-      );
-
+      const response = await fetch("http://localhost:5000/api/auctions", {
+        method: "POST",
+        credentials: "include",
+        body: dataToSend,
+      });
 
       const data = await response.json();
 
-
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to create auction"
-        );
+        throw new Error(data.message || "Failed to create auction");
       }
 
+      toast.success("Auction listed successfully!");
 
-      setSuccessMsg(
-        "Auction listed successfully!"
-      );
-
-
+      // Reset form fields
       setFormData({
         title: "",
         description: "",
@@ -147,102 +113,49 @@ function CreateAuction() {
         endTime: "",
       });
 
-
       setImageFile(null);
       setImagePreview(null);
 
-
-      const fileInput =
-        document.getElementById("image");
-
+      const fileInput = document.getElementById("image");
       if (fileInput) {
         fileInput.value = "";
       }
 
-
-      // Optional redirect after creation
+      // Optional: Redirect after successful creation
       // navigate("/browse-auction");
 
-
     } catch (err) {
-
       console.error(err);
-
-      setErrorMsg(err.message);
-
+      toast.error(`${err.message}`);
     }
   };
-
 
   return (
     <>
       <Navbar />
 
+      {/* 3. TOAST CONTAINER */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            borderRadius: "8px",
+          },
+        }} 
+      />
+
       <div className="create-auction">
-
         <div className="create-auction-hero">
-
           <h1>Create Auction</h1>
-
-          <p>
-            List an item and let the bidding begin
-          </p>
-
+          <p>List an item and let the bidding begin</p>
         </div>
 
-
-
         <div className="create-auction-form-section">
-
-
-          {errorMsg && (
-            <div
-              className="auth-alert error"
-              style={{
-                color:"#b91c1c",
-                backgroundColor:"#fee2e2",
-                border:"1px solid #fca5a5",
-                padding:"12px",
-                borderRadius:"6px",
-                textAlign:"center",
-                marginBottom:"15px"
-              }}
-            >
-              {errorMsg}
-            </div>
-          )}
-
-
-
-          {successMsg && (
-            <div
-              className="auth-alert success"
-              style={{
-                color:"#15803d",
-                backgroundColor:"#dcfce7",
-                border:"1px solid #86efac",
-                padding:"12px",
-                borderRadius:"6px",
-                textAlign:"center",
-                marginBottom:"15px"
-              }}
-            >
-              {successMsg}
-            </div>
-          )}
-
-
-
-          <form
-            className="create-auction-form"
-            onSubmit={handleSubmit}
-          >
-
-
-            <label>
-              Title
-            </label>
-
+          <form className="create-auction-form" onSubmit={handleSubmit}>
+            <label>Title</label>
             <input
               name="title"
               type="text"
@@ -252,20 +165,13 @@ function CreateAuction() {
               required
             />
 
-
-
-            <label>
-              Item Image
-            </label>
-
-
+            <label>Item Image</label>
             <input
               id="image"
               type="file"
               accept="image/*"
               onChange={handleImageChange}
             />
-
 
             {imagePreview && (
               <img
@@ -275,14 +181,7 @@ function CreateAuction() {
               />
             )}
 
-
-
-
-            <label>
-              Description
-            </label>
-
-
+            <label>Description</label>
             <textarea
               name="description"
               placeholder="Describe the item details..."
@@ -292,13 +191,7 @@ function CreateAuction() {
               required
             />
 
-
-
-            <label>
-              Starting Price ($)
-            </label>
-
-
+            <label>Starting Price ($)</label>
             <input
               name="startingPrice"
               type="number"
@@ -309,13 +202,7 @@ function CreateAuction() {
               required
             />
 
-
-
-            <label>
-              Start Time
-            </label>
-
-
+            <label>Start Time</label>
             <button
               type="button"
               onClick={handleStartNow}
@@ -323,7 +210,6 @@ function CreateAuction() {
             >
               ⚡ Start Now
             </button>
-
 
             <input
               name="startTime"
@@ -333,13 +219,7 @@ function CreateAuction() {
               required
             />
 
-
-
-            <label>
-              End Time
-            </label>
-
-
+            <label>End Time</label>
             <input
               name="endTime"
               type="datetime-local"
@@ -348,28 +228,16 @@ function CreateAuction() {
               required
             />
 
-
-
-            <button
-              type="submit"
-              className="submit-btn"
-            >
+            <button type="submit" className="submit-btn">
               Create Auction
             </button>
-
-
           </form>
-
         </div>
-
       </div>
 
-
       <Footer />
-
     </>
   );
 }
-
 
 export default CreateAuction;

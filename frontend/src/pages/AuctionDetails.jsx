@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {socket} from "../socket";
+import { socket } from "../socket";
 import Navbar from "../components/Navbar";
-import './AuctionDetails.css';
+import "./AuctionDetails.css";
+// 1. IMPORT TOAST & TOASTER
+import toast, { Toaster } from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -15,7 +17,6 @@ function AuctionDetails() {
   const [error, setError] = useState(null);
 
   const [bidAmount, setBidAmount] = useState("");
-  const [bidStatus, setBidStatus] = useState(null); // { type: 'success' | 'error', message }
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,9 @@ function AuctionDetails() {
         const response = await fetch(`${API_BASE}/api/auctions/${id}`);
         if (!response.ok) {
           throw new Error(
-            response.status === 404 ? "Auction not found" : `Server responded with ${response.status}`
+            response.status === 404
+              ? "Auction not found"
+              : `Server responded with ${response.status}`
           );
         }
         const data = await response.json();
@@ -40,6 +43,7 @@ function AuctionDetails() {
         console.error("Failed to fetch auction:", err);
         if (!ignore) {
           setError(err.message);
+          toast.error(err.message || "Failed to load auction");
         }
       } finally {
         if (!ignore) {
@@ -56,46 +60,53 @@ function AuctionDetails() {
   }, [id]);
 
   useEffect(() => {
-  if (!id) return;
+    if (!id) return;
 
-  socket.emit("joinAuction", id);
+    socket.emit("joinAuction", id);
 
-  return () => {
-    socket.emit("leaveAuction", id);
-  };
-}, [id]);
+    return () => {
+      socket.emit("leaveAuction", id);
+    };
+  }, [id]);
 
-useEffect(() => {
-  const handleBidUpdate = (payload) => {
-    if (String(payload.auction_id) !== String(id)) return;
+  useEffect(() => {
+    const handleBidUpdate = (payload) => {
+      if (String(payload.auction_id) !== String(id)) return;
 
-    setAuction((prev) =>
-      prev
-        ? {
-            ...prev,
-            current_price: payload.current_price ?? prev.current_price,
-            highest_bidder: payload.highest_bidder ?? prev.highest_bidder,
-            highest_bid: payload.highest_bid ?? prev.highest_bid,
-            bid_count: payload.bid_count ?? prev.bid_count,
-            recent_bids: payload.recent_bids ?? prev.recent_bids,
-          }
-        : prev
-    );
-  };
+      setAuction((prev) =>
+        prev
+          ? {
+              ...prev,
+              current_price: payload.current_price ?? prev.current_price,
+              highest_bidder: payload.highest_bidder ?? prev.highest_bidder,
+              highest_bid: payload.highest_bid ?? prev.highest_bid,
+              bid_count: payload.bid_count ?? prev.bid_count,
+              recent_bids: payload.recent_bids ?? prev.recent_bids,
+            }
+          : prev
+      );
 
-  socket.on("bidUpdate", handleBidUpdate);
+      // Real-time toast alert when a new higher bid arrives via WebSocket
+      if (payload.highest_bidder && payload.current_price) {
+        toast(`New High Bid: $${payload.current_price} by ${payload.highest_bidder}!`, {
+          icon: "⚡",
+        });
+      }
+    };
 
-  return () => socket.off("bidUpdate", handleBidUpdate);
-}, [id]);
+    socket.on("bidUpdate", handleBidUpdate);
 
-  // Re-fetches after a successful bid so highest bid / bidder / history all update together.
-  // Not guarded by `ignore` since it's user-triggered, not tied to the mount/id lifecycle above.
+    return () => socket.off("bidUpdate", handleBidUpdate);
+  }, [id]);
+
   const refetchAuction = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/auctions/${id}`);
       if (!response.ok) {
         throw new Error(
-          response.status === 404 ? "Auction not found" : `Server responded with ${response.status}`
+          response.status === 404
+            ? "Auction not found"
+            : `Server responded with ${response.status}`
         );
       }
       const data = await response.json();
@@ -105,22 +116,19 @@ useEffect(() => {
     }
   };
 
+  // 2. REPLACED LOCAL STATE MESSAGES WITH TOAST NOTIFICATIONS
   const handleBidSubmit = async (e) => {
     e.preventDefault();
 
-    if (submitting) {
-      return;
-    }
-
-    setBidStatus(null);
+    if (submitting) return;
 
     if (!bidAmount || isNaN(bidAmount)) {
-      setBidStatus({ type: "error", message: "Enter a valid bid amount." });
+      toast.error("Please enter a valid bid amount.");
       return;
     }
 
     if (Number(bidAmount) <= Number(currentPrice)) {
-      setBidStatus({ type: "error", message: `Bid must be more than $${currentPrice}` });
+      toast.error(`Bid must be strictly more than $${currentPrice}`);
       return;
     }
 
@@ -132,22 +140,21 @@ useEffect(() => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(bidAmount),
-          
         }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        setBidStatus({ type: "error", message: result.error || "Bid failed." });
+        toast.error(`${result.error || result.message || "Bid failed."}`);
       } else {
-        setBidStatus({ type: "success", message: "Bid placed successfully!" });
+        toast.success(`🎉 Bid of $${bidAmount} placed successfully!`);
         setBidAmount("");
         refetchAuction();
       }
     } catch (err) {
       console.error("Failed to place bid:", err);
-      setBidStatus({ type: "error", message: "Something went wrong. Please try again." });
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -182,6 +189,20 @@ useEffect(() => {
   return (
     <>
       <Navbar />
+
+      {/* 3. TOAST CONTAINER */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            borderRadius: "8px",
+          },
+        }} 
+      />
+
       <div className="auction-details-page">
         <button className="back-button" onClick={() => navigate(-1)}>
           &larr; Back
@@ -196,11 +217,11 @@ useEffect(() => {
 
           <div className="auction-details-info">
             <span className={`status status-${auction.status}`}>
-              {auction.status === 'active'
-                ? 'Active'
-                : auction.status === 'upcoming'
-                ? 'Upcoming'
-                : 'Ended'}
+              {auction.status === "active"
+                ? "Active"
+                : auction.status === "upcoming"
+                ? "Upcoming"
+                : "Ended"}
             </span>
 
             <h1>{auction.title}</h1>
@@ -208,14 +229,18 @@ useEffect(() => {
 
             <div className="price-block">
               <span className="label">
-                {auction.status === 'ended' ? 'Final Price' : 'Current Price'}
+                {auction.status === "ended" ? "Final Price" : "Current Price"}
               </span>
               <span className="price">${currentPrice}</span>
             </div>
 
             {/* Winner / highest bidder / bid stats */}
-            {auction.status === 'ended' ? (
-              <div className={`result-block ${auction.highest_bidder ? 'won' : 'no-winner'}`}>
+            {auction.status === "ended" ? (
+              <div
+                className={`result-block ${
+                  auction.highest_bidder ? "won" : "no-winner"
+                }`}
+              >
                 {auction.highest_bidder ? (
                   <>
                     <span className="label">Winner</span>
@@ -236,7 +261,9 @@ useEffect(() => {
               <div className="result-block leading">
                 <span className="label">Highest Bidder</span>
                 <span className="winner-name">{auction.highest_bidder}</span>
-                <span className="sub-detail">Highest bid: ${auction.highest_bid}</span>
+                <span className="sub-detail">
+                  Highest bid: ${auction.highest_bid}
+                </span>
               </div>
             ) : (
               <p className="notice">No bids yet — be the first to bid.</p>
@@ -254,13 +281,21 @@ useEffect(() => {
             </div>
 
             <div className="dates">
-              <p><strong>Starts:</strong> {new Date(auction.start_time).toLocaleString()}</p>
-              <p><strong>Ends:</strong> {new Date(auction.end_time).toLocaleString()}</p>
+              <p>
+                <strong>Starts:</strong>{" "}
+                {new Date(auction.start_time).toLocaleString()}
+              </p>
+              <p>
+                <strong>Ends:</strong>{" "}
+                {new Date(auction.end_time).toLocaleString()}
+              </p>
             </div>
 
-            {auction.status === 'active' && (
+            {auction.status === "active" && (
               <form className="bid-form" onSubmit={handleBidSubmit}>
-                <label htmlFor="bidAmount">Your bid (must be more than ${currentPrice})</label>
+                <label htmlFor="bidAmount">
+                  Your bid (must be more than ${currentPrice})
+                </label>
                 <div className="bid-input-row">
                   <input
                     id="bidAmount"
@@ -279,13 +314,9 @@ useEffect(() => {
               </form>
             )}
 
-            {auction.status === 'upcoming' && (
-              <p className="notice">This auction hasn't started yet — check back soon.</p>
-            )}
-
-            {bidStatus && (
-              <p className={bidStatus.type === "error" ? "error-message" : "success-message"}>
-                {bidStatus.message}
+            {auction.status === "upcoming" && (
+              <p className="notice">
+                This auction hasn't started yet — check back soon.
               </p>
             )}
 
@@ -295,15 +326,11 @@ useEffect(() => {
                 <h3>Recent Bids</h3>
                 <ul>
                   {auction.recent_bids.map((bid) => (
-                    <li key={bid.bid_id ?? `${bid.bidder_name}-${bid.bid_time}`}>
-                      <span className="bidder">
-                        {bid.bidder_name}
-                      </span>
-
-                      <span className="amount">
-                        ${bid.bid_amount}
-                      </span>
-
+                    <li
+                      key={bid.bid_id ?? `${bid.bidder_name}-${bid.bid_time}`}
+                    >
+                      <span className="bidder">{bid.bidder_name}</span>
+                      <span className="amount">${bid.bid_amount}</span>
                       <span className="time">
                         {new Date(bid.bid_time).toLocaleString()}
                       </span>

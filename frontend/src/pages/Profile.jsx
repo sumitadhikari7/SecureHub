@@ -3,17 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "./Profile.css";
 import Footer from "../components/Footer";
+// 1. IMPORT TOAST & TOASTER
+import toast, { Toaster } from "react-hot-toast";
 
 const API_BASE = "http://localhost:5000";
 
 function Profile() {
-  // NOTE: there's no login/session system wired up yet, so this page assumes
-  // whatever handles login stores the logged-in user's id in localStorage
-  // under "userId". Swap this for real auth (a token, a session cookie,
-  // etc.) once that exists.
-  const navigate = useNavigate(); // NEW
-  const [userId, setUserId] = useState(null); // CHANGED — no longer from localStorage
-  const [checkingSession, setCheckingSession] = useState(true); // NE
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +62,7 @@ function Profile() {
     } catch (err) {
       console.error("Error fetching profile:", err);
       setLoadError(err.message);
+      toast.error(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -71,12 +70,10 @@ function Profile() {
 
   useEffect(() => {
     if (!userId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
     fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const handleFieldChange = (field, value) => {
@@ -87,8 +84,6 @@ function Profile() {
     const file = e.target.files[0];
     if (!file || !userId) return;
 
-    // Show the picked image immediately, then swap in the server's copy
-    // once the upload finishes.
     const localPreview = URL.createObjectURL(file);
     setProfileImage(localPreview);
 
@@ -109,9 +104,10 @@ function Profile() {
 
       setProfileImage(toAbsoluteImageUrl(data.profile_image));
       setUser((prev) => (prev ? { ...prev, profile_image: data.profile_image } : prev));
+      toast.success("Profile photo updated!");
     } catch (err) {
       console.error("Error uploading photo:", err);
-      alert(`❌ ${err.message}`);
+      toast.error(`${err.message}`);
       setProfileImage(toAbsoluteImageUrl(user?.profile_image));
     } finally {
       setUploadingPhoto(false);
@@ -133,9 +129,10 @@ function Profile() {
 
       setProfileImage(null);
       setUser((prev) => (prev ? { ...prev, profile_image: null } : prev));
+      toast.success("Profile photo removed!");
     } catch (err) {
       console.error("Error removing photo:", err);
-      alert(`❌ ${err.message}`);
+      toast.error(`${err.message}`);
     }
   };
 
@@ -145,7 +142,6 @@ function Profile() {
       return;
     }
 
-    // Currently editing, so this click means "save".
     if (!userId) return;
 
     setSaving(true);
@@ -163,9 +159,10 @@ function Profile() {
 
       setUser(data);
       setIsEditing(false);
+      toast.success("Profile updated successfully!");
     } catch (err) {
       console.error("Error saving profile:", err);
-      alert(`❌ ${err.message}`);
+      toast.error(`${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -182,20 +179,52 @@ function Profile() {
     setIsEditing(false);
   };
 
-  const handleLogout = async () => {
-    const confirmed = window.confirm("Are you sure you want to logout?");
-    if (!confirmed) return;
-
-    try {
-      await fetch(`${API_BASE}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-
-    navigate("/", { replace: true });
+  // Modern Toast Confirmation for Logout
+  const handleLogout = () => {
+    toast((t) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <span>Are you sure you want to logout?</span>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button
+            style={{
+              padding: "4px 8px",
+              borderRadius: "4px",
+              border: "none",
+              background: "#ef4444",
+              color: "#fff",
+              cursor: "pointer"
+            }}
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await fetch(`${API_BASE}/api/auth/logout`, {
+                  method: "POST",
+                  credentials: "include",
+                });
+              } catch (err) {
+                console.error("Logout failed:", err);
+              }
+              navigate("/", { replace: true });
+            }}
+          >
+            Logout
+          </button>
+          <button
+            style={{
+              padding: "4px 8px",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              background: "#fff",
+              color: "#333",
+              cursor: "pointer"
+            }}
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: 5000 });
   };
 
   if (checkingSession) {
@@ -248,13 +277,25 @@ function Profile() {
     );
   }
 
-  // There's no `username` column in the users table, so the @handle shown
-  // under the name is derived from the part of the email before the "@".
   const displayHandle = user.email ? user.email.split("@")[0] : "";
 
   return (
     <>
       <Navbar />
+
+      {/* TOAST CONTAINER */}
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            borderRadius: "8px",
+          },
+        }} 
+      />
+
       <div className="profile-page">
         <div className="profile-header">
           <h1>My Profile</h1>
