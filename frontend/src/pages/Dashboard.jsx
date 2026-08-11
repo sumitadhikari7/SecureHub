@@ -127,6 +127,9 @@ function Dashboard() {
   const [upcomingAuctions, setUpcomingAuctions] = useState(() => new Set());
   const [selectedAuctionId, setSelectedAuctionId] = useState(null);
   const [fetchError, setFetchError] = useState(null);
+  // 🆕 Tracks which auction_ids the current user has starred, so the toggle
+  // button on each card renders filled/empty correctly.
+  const [watchlistedIds, setWatchlistedIds] = useState(() => new Set());
 
   const fetchDashboardData = async () => {
     try {
@@ -148,6 +151,7 @@ function Dashboard() {
 
       const initialBids = {};
       const initialUpcoming = new Set();
+      const initialWatchlist = new Set();
 
       data.featured.forEach((auction) => {
         const currentPrice = Number(
@@ -166,10 +170,15 @@ function Dashboard() {
         if (start && start > new Date()) {
           initialUpcoming.add(auction.auction_id);
         }
+
+        if (auction.is_watchlisted) {
+          initialWatchlist.add(auction.auction_id);
+        }
       });
 
       setBidInputs(initialBids);
       setUpcomingAuctions(initialUpcoming);
+      setWatchlistedIds(initialWatchlist);
       setLoading(false);
     } catch (error) {
       console.error("Dashboard fetch error:", error);
@@ -335,6 +344,50 @@ function Dashboard() {
     }
   };
 
+  // 🆕 Adds or removes an auction from the watchlist. e.stopPropagation()
+  // keeps the click from also triggering the card's "open modal" handler.
+  const handleToggleWatchlist = async (e, auctionId) => {
+    e.stopPropagation();
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/watchlist/${auctionId}/toggle`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update watchlist");
+      }
+
+      setWatchlistedIds((prev) => {
+        const updated = new Set(prev);
+        if (data.watchlisted) {
+          updated.add(auctionId);
+        } else {
+          updated.delete(auctionId);
+        }
+        return updated;
+      });
+
+      setStats((prev) => ({
+        ...prev,
+        watchlist: Math.max(0, prev.watchlist + (data.watchlisted ? 1 : -1)),
+      }));
+
+      toast.success(
+        data.watchlisted ? "Added to your watchlist" : "Removed from watchlist"
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message || "Failed to update watchlist");
+    }
+  };
+
   const renderAuctionBody = (auction, { expanded = false } = {}) => {
     const currentPrice = Number(
       auction.current_price ?? auction.currentPrice ?? 0
@@ -348,12 +401,45 @@ function Dashboard() {
     const seller = auction.seller_name ?? auction.sellerName ?? "Unknown";
     const inputValue = bidInputs[auction.auction_id] ?? minBid;
 
-    const isEnded = endedAuctions.has(auction.auction_id);
+    // FIX: endedAuctions is only populated when the countdown timer
+    // transitions from live -> ended WHILE the page is open. An auction
+    // that was already over at page load never fires that transition, so
+    // relying on the Set alone let an already-ended card's bid button
+    // stay enabled until someone actually tried to bid (the backend would
+    // reject it, but the button shouldn't offer it at all). Checking the
+    // raw end_time directly closes that gap regardless of when it ended.
+    const endTime = toDate(auction.end_time ?? auction.endTime);
+    const isEnded =
+      endedAuctions.has(auction.auction_id) ||
+      (endTime ? endTime <= new Date() : false);
     const isUpcoming = upcomingAuctions.has(auction.auction_id);
+    const isWatchlisted = watchlistedIds.has(auction.auction_id);
+    // A fresh watchlist add only makes sense for something not yet over -
+    // once it's ended there's nothing left to track. Items already
+    // watchlisted before ending remain removable (see the star's onClick).
+    const blockNewWatchlist = isEnded && !isWatchlisted;
 
     return (
       <>
         <div className="card-media-box">
+          <button
+            className={`watchlist-toggle-btn ${isWatchlisted ? "active" : ""}`}
+            onClick={(e) => handleToggleWatchlist(e, auction.auction_id)}
+            disabled={blockNewWatchlist}
+            aria-label={
+              isWatchlisted ? "Remove from watchlist" : "Add to watchlist"
+            }
+            title={
+              blockNewWatchlist
+                ? "This auction has ended — can't add to watchlist"
+                : isWatchlisted
+                ? "Remove from watchlist"
+                : "Add to watchlist"
+            }
+          >
+            {isWatchlisted ? "★" : "☆"}
+          </button>
+
           <img
             src={
               auction.image_url ??
@@ -511,10 +597,13 @@ function Dashboard() {
             <p>{stats.activeBids}</p>
           </div>
 
-          <div className="card">
-            <h3>Watchlist Items</h3>
-            <p>{stats.watchlist}</p>
-          </div>
+          {/* 🆕 Now a real link into the dedicated Watchlist page */}
+          <Link to="/watchlist" className="card-stat-link">
+            <div className="card">
+              <h3>Watchlist Items</h3>
+              <p>{stats.watchlist}</p>
+            </div>
+          </Link>
         </section>
 
         <section className="featured">
