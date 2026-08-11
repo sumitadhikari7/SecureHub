@@ -24,6 +24,25 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+// 🌟 WATCHLIST TABLE — created once at boot if it doesn't already exist.
+// One row per (user, auction) pair; the UNIQUE constraint is what makes the
+// toggle endpoint below safe to call twice in a row without creating dupes.
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS watchlist (
+        watchlist_id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        auction_id INTEGER NOT NULL REFERENCES auctions(auction_id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (user_id, auction_id)
+      )
+    `);
+  } catch (err) {
+    console.error("Failed to ensure watchlist table exists:", err.message);
+  }
+})();
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -122,11 +141,27 @@ app.get('/api/dashboard', async (req, res) => {
           AND end_time > NOW()
         ) AS active_auctions,
 
+        -- FIX: this used to be COUNT(*) FROM bids, which counts every bid
+        -- ROW - so placing 5 bids on the same auction counted as 5 "active
+        -- bids" instead of 1. COUNT(DISTINCT b.auction_id) counts each
+        -- auction once no matter how many times the user bid on it, and the
+        -- join to auctions restricts it to auctions that are still active
+        -- (an auction the user bid on that has already ended is no longer
+        -- an "active bid").
+        (
+          SELECT COUNT(DISTINCT b.auction_id)::int
+          FROM bids b
+          JOIN auctions a ON a.auction_id = b.auction_id
+          WHERE b.bidder_id = $1
+            AND a.start_time <= NOW()
+            AND a.end_time > NOW()
+        ) AS active_bids,
+
         (
           SELECT COUNT(*)::int
-          FROM bids
-          WHERE bidder_id = $1
-        ) AS active_bids
+          FROM watchlist
+          WHERE user_id = $1
+        ) AS watchlist_count
     `,[req.session.userId]);
 
 
@@ -141,6 +176,19 @@ app.get('/api/dashboard', async (req, res) => {
       LIMIT 10
     `);
 
+    // Mark which of these featured auctions the user has already
+    // watchlisted, so the star button on each card renders filled/empty
+    // correctly on page load without a second round trip per card.
+    const watchlistIdsResult = await pool.query(
+      `SELECT auction_id FROM watchlist WHERE user_id = $1`,
+      [req.session.userId]
+    );
+    const watchlistedSet = new Set(watchlistIdsResult.rows.map((r) => r.auction_id));
+
+    const featured = featuredResult.rows.map((a) => ({
+      ...a,
+      is_watchlisted: watchlistedSet.has(a.auction_id),
+    }));
 
     res.json({
       stats:{
@@ -150,10 +198,11 @@ app.get('/api/dashboard', async (req, res) => {
         activeBids:
           statsResult.rows[0].active_bids,
 
-        watchlist:0
+        watchlist:
+          statsResult.rows[0].watchlist_count
       },
 
-      featured:featuredResult.rows
+      featured
     });
 
 
@@ -166,6 +215,97 @@ app.get('/api/dashboard', async (req, res) => {
     });
   }
 
+});
+
+// ⭐ TOGGLE WATCHLIST — adds the auction if not already watchlisted,
+// removes it if it is. Returns the resulting state so the client doesn't
+// have to guess which way it flipped.
+app.post('/api/watchlist/:auctionId/toggle', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Please log in to use your watchlist." });
+  }
+
+  const { auctionId } = req.params;
+
+  try {
+    const existing = await pool.query(
+      `SELECT watchlist_id FROM watchlist WHERE user_id = $1 AND auction_id = $2`,
+      [req.session.userId, auctionId]
+    );
+
+    if (existing.rows.length > 0) {
+      // Already watchlisted - always allow removing, even after the auction
+      // has since ended, so users can still clear out history they no
+      // longer want to see. This branch is intentionally NOT subject to the
+      // ended-auction check below.
+      await pool.query(`DELETE FROM watchlist WHERE watchlist_id = $1`, [existing.rows[0].watchlist_id]);
+      return res.json({ watchlisted: false });
+    }
+
+    // Not yet watchlisted - block adding an auction that has already ended.
+    // There's nothing left to "watch": bidding is closed and the price is
+    // final, so a brand-new watchlist entry on it serves no purpose. This
+    // does NOT retroactively remove items someone starred before they
+    // ended (see the branch above) - it only blocks new adds.
+    const auctionResult = await pool.query(
+      `SELECT end_time FROM auctions WHERE auction_id = $1`,
+      [auctionId]
+    );
+
+    if (auctionResult.rows.length === 0) {
+      return res.status(404).json({ message: "Auction not found" });
+    }
+
+    if (new Date(auctionResult.rows[0].end_time) <= new Date()) {
+      return res.status(400).json({
+        message: "This auction has already ended and can't be added to your watchlist.",
+      });
+    }
+
+    await pool.query(
+      `INSERT INTO watchlist (user_id, auction_id) VALUES ($1, $2)
+       ON CONFLICT (user_id, auction_id) DO NOTHING`,
+      [req.session.userId, auctionId]
+    );
+    res.json({ watchlisted: true });
+  } catch (err) {
+    console.error("Watchlist toggle error:", err);
+    res.status(500).json({ message: "Failed to update watchlist" });
+  }
+});
+
+
+// ⭐ GET FULL WATCHLIST — auction details for everything the user has
+// starred, in the same shape /api/dashboard uses so the Watchlist page can
+// reuse the same card-rendering logic as the Dashboard.
+app.get('/api/watchlist', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Please log in to view your watchlist." });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+          a.*,
+          u.full_name AS seller_name,
+          CASE
+            WHEN NOW() < a.start_time THEN 'upcoming'
+            WHEN NOW() > a.end_time THEN 'ended'
+            ELSE 'active'
+          END AS status,
+          true AS is_watchlisted
+       FROM watchlist w
+       JOIN auctions a ON a.auction_id = w.auction_id
+       LEFT JOIN users u ON u.user_id = a.seller_id
+       WHERE w.user_id = $1
+       ORDER BY w.created_at DESC`,
+      [req.session.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Fetch watchlist error:", err);
+    res.status(500).json({ message: "Failed to load watchlist" });
+  }
 });
 
 // ➕ CREATE AUCTION
