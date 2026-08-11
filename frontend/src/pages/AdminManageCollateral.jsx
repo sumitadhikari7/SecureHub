@@ -7,7 +7,6 @@ function AdminManageCollateral() {
   const location = useLocation();
   const { id } = useParams();
 
-  // TODO: replace with actual logged-in admin data (from auth context/API)
   // 1. Change admin from a static object to state
   const [admin, setAdmin] = useState({
     name: "Admin",
@@ -32,10 +31,7 @@ function AdminManageCollateral() {
       .catch(() => {
         navigate("/admin-authentication");
       });
-
-    fetch("http://localhost:5000/api/admin/stats", { credentials: "include" })
-      // ... rest of your existing stats and collateral fetch logic
-  }, [id, navigate]);
+  }, [navigate]);
 
   const dashboardItems = [
     { id: 1, icon: "🏠", title: "Home", path: "/admin-dashboard" },
@@ -51,7 +47,6 @@ function AdminManageCollateral() {
   const [loading, setLoading] = useState(true);
   const [error] = useState(null);
 
-  const [newBalance, setNewBalance] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -82,12 +77,6 @@ function AdminManageCollateral() {
         if (!data) return;
         const found = data.request || data;
         setRequest(found);
-        
-        const currentBal = Number(found?.currentBalance ?? found?.current_balance ?? 0);
-        const requestedAmt = Number(found?.amount ?? 0);
-        const calculatedNewBalance = currentBal + requestedAmt;
-
-        setNewBalance(String(calculatedNewBalance));
         setLoading(false);
       })
       .catch(() => {
@@ -123,23 +112,18 @@ function AdminManageCollateral() {
   const handleApprove = async (e) => {
     e.preventDefault();
 
-    if (newBalance === "" || isNaN(Number(newBalance))) {
-      setSubmitError("Enter a valid balance amount.");
-      return;
-    }
-
     try {
       setSubmitting(true);
       setSubmitError(null);
 
+      // Approval always adds exactly the requested amount to the user's
+      // balance server-side — there is no balance field here for an admin
+      // to type into. If the transaction doesn't check out, reject instead.
       const res = await fetch(`http://localhost:5000/api/admin/collateral-requests/${id}/approve`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          balance: Number(newBalance),
-          note
-        })
+        body: JSON.stringify({ note })
       });
 
       if (!res.ok) {
@@ -219,7 +203,7 @@ function AdminManageCollateral() {
       <main className="collateral-mgmt-content">
         <div className="collateral-mgmt-header">
           <h1>Manage Collateral</h1>
-          <p>Review the request and update the user's balance.</p>
+          <p>Review the request and confirm the decision.</p>
         </div>
 
         <Link to="/admin-collateral-requests" className="manage-back-link">
@@ -289,7 +273,7 @@ function AdminManageCollateral() {
                   </tr>
                   <tr>
                     <th scope="row">Transaction ID</th>
-                    <td><strong>{transactionIdValue}</strong></td>
+                    <td className="mono-cell">{transactionIdValue}</td>
                   </tr>
                 </tbody>
               </table>
@@ -302,18 +286,14 @@ function AdminManageCollateral() {
             </div>
 
             <form className="manage-card" onSubmit={handleApprove}>
-              <h3 className="manage-card-title">Update Balance</h3>
+              <h3 className="manage-card-title">Confirm Decision</h3>
 
-              <label className="manage-field">
-                <span className="manage-field-label">New Balance ($)</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newBalance}
-                  onChange={(e) => setNewBalance(e.target.value)}
-                  placeholder="Enter the balance to set for this user"
-                />
-              </label>
+              <p className="manage-approve-note">
+                Approving will add exactly <strong>{`$${requestedAmtNum.toFixed(2)}`}</strong> to
+                this user's balance — the amount they requested, verified against
+                transaction ID <strong>{transactionIdValue}</strong>. There's no separate
+                balance field to edit: if the transaction doesn't match, reject instead.
+              </p>
 
               <label className="manage-field">
                 <span className="manage-field-label">Admin Note (optional)</span>
