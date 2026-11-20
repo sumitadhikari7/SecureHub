@@ -301,10 +301,10 @@ npm run dev
 - Improve fraud detection accuracy through additional training data.
 - Evaluate the model using precision, recall, F1-score, and confusion matrix.
 - Introduce more advanced behavioral analysis.
-- Implement automatic suspicious account monitoring.
 - Improve fraud alert explanations and reporting.
 - Introduce enhanced security and access-control mechanisms.
 - Add detailed analytics and visualization to the admin dashboard.
+- **Blockchain Integration:** Integrate blockchain technology to maintain tamper-resistant records of auctions, bids, and transactions, improving transparency, traceability, and trust in the auction process.
 
 ---
 
