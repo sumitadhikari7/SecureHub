@@ -174,3 +174,154 @@ SecureHub/
 │   └── ...
 │
 └── README.md
+
+
+## Installation and Setup
+
+### Prerequisites
+
+Make sure you have installed:
+
+- Node.js
+- npm
+- PostgreSQL
+- Redis
+
+### 1. Clone the Repository
+
+```bash
+git clone YOUR_REPOSITORY_URL
+cd SecureHub
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+npm install
+```
+
+Configure your backend environment variables in a `.env` file.
+
+Example configuration:
+
+```env
+PORT=5000
+
+DATABASE_URL=your_postgresql_connection_string
+
+REDIS_URL=your_redis_connection_string
+
+SESSION_SECRET=your_session_secret
+
+EMAIL_USER=your_email_address
+EMAIL_PASS=your_email_app_password
+```
+
+Use the exact environment variable names expected by your backend code.
+
+Start the backend:
+
+```bash
+node server.js
+```
+
+### 3. Frontend Setup
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 4. Database Configuration
+
+- Create a PostgreSQL database.
+- Execute the project's database schema and SQL setup scripts.
+- Configure the database connection.
+- Ensure PostgreSQL and Redis are running before starting the application.
+
+---
+
+## 🔄 System Workflow
+
+```text
+          USER
+            |
+            v
+      User Authentication
+            |
+            v
+       Browse Auctions
+            |
+            v
+         Place Bid
+            |
+            v
+      Save Bid in Database
+            |
+            v
+     Extract Bidder Features
+            |
+            v
+      Logistic Regression
+            |
+            v
+       Calculate Risk Score
+            |
+            v
+      Compare with 0.5
+            |
+       +----+----+
+       |         |
+     Below     >= 0.5
+      0.5        |
+       |         v
+       |    Generate Alert
+       |         |
+       |         v
+       |    Store in Database
+       |         |
+       |         v
+       |    Admin Dashboard
+       |         |
+       |         v
+       |    Admin Review
+       |
+       v
+  Continue Normal Bidding
+```
+
+---
+
+## Future Enhancements
+
+- Improve fraud detection accuracy through additional training data.
+- Evaluate the model using precision, recall, F1-score, and confusion matrix.
+- Introduce more advanced behavioral analysis.
+- Implement automatic suspicious account monitoring.
+- Improve fraud alert explanations and reporting.
+- Introduce enhanced security and access-control mechanisms.
+- Add detailed analytics and visualization to the admin dashboard.
+
+---
+
+## Project Objective
+
+The primary objective of SecureHub is to develop a secure and user-friendly online auction platform while integrating machine learning techniques to identify potentially fraudulent bidding behavior.
+
+By combining real-time auction functionality, secure authentication, and automated fraud-risk analysis, SecureHub aims to improve transparency, monitoring, and trust in online auction activities.
+
+---
+
+## 👨‍💻 Project Information
+
+**Project Name:** SecureHub
+
+**Project Type:** Academic Project
+
+**Project Title:** Secure Online Auction System with Fraud Detection
+
+**Technologies:** React.js, Vite, Node.js, Express.js, PostgreSQL, Redis, Socket.IO, and Machine Learning.
